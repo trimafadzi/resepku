@@ -1,22 +1,27 @@
 {
   "expo": {
-    "name": "frontend",
+    "name": "RecipeVault",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "frontend",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Pick a cover photo for your recipe",
+        "NSCameraUsageDescription": "Snap a photo of your dish"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000"
+        "backgroundColor": "#FDFBF7"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": ["READ_MEDIA_IMAGES", "CAMERA"]
     },
     "web": {
       "bundler": "metro",
@@ -31,10 +36,17 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#000"
+          "backgroundColor": "#FDFBF7"
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Pick a cover photo for your recipe",
+          "cameraPermission": "Snap a photo of your dish"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
