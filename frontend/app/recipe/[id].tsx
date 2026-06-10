@@ -49,7 +49,8 @@ export default function RecipeDetail() {
   const onDelete = async () => {
     if (!recipe) return;
     await deleteRecipe(recipe.id);
-    router.back();
+    if (router.canGoBack()) router.back();
+    else router.replace("/");
   };
 
   if (loading) {
@@ -64,7 +65,7 @@ export default function RecipeDetail() {
     return (
       <View style={[styles.loaderWrap, { paddingHorizontal: spacing.xl }]}>
         <Text style={styles.missing}>This recipe is no longer here.</Text>
-        <Pressable onPress={() => router.back()} style={styles.backBtnSolid}>
+        <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))} style={styles.backBtnSolid}>
           <Text style={styles.backBtnSolidText}>Go back</Text>
         </Pressable>
       </View>
