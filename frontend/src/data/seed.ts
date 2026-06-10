@@ -29,6 +29,7 @@ export const SEED_RECIPES: Recipe[] = [
     difficulty: "Mudah",
     favorite: true,
     createdAt: Date.now() - 5 * 86400000,
+    isPublic: true,
   },
   {
     id: "seed-siang-1",
@@ -56,6 +57,7 @@ export const SEED_RECIPES: Recipe[] = [
     difficulty: "Mudah",
     favorite: false,
     createdAt: Date.now() - 4 * 86400000,
+    isPublic: true,
   },
   {
     id: "seed-malam-1",
@@ -84,6 +86,7 @@ export const SEED_RECIPES: Recipe[] = [
     difficulty: "Sedang",
     favorite: true,
     createdAt: Date.now() - 3 * 86400000,
+    isPublic: true,
   },
   {
     id: "seed-dessert-1",
@@ -115,6 +118,7 @@ export const SEED_RECIPES: Recipe[] = [
     difficulty: "Sulit",
     favorite: false,
     createdAt: Date.now() - 2 * 86400000,
+    isPublic: true,
   },
   {
     id: "seed-camilan-1",
@@ -142,5 +146,6 @@ export const SEED_RECIPES: Recipe[] = [
     difficulty: "Mudah",
     favorite: false,
     createdAt: Date.now() - 1 * 86400000,
+    isPublic: true,
   },
 ];

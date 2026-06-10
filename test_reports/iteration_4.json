@@ -1,0 +1,47 @@
+{
+  "summary": "Tested NEW sosmed feature end-to-end on public preview (mobile viewport 390x844). Backend: created /app/backend/tests/test_social.py with 12 pytest cases covering /api/social/users (upsert + update + 400 + 404), /api/social/posts (create + list + 404 + 403 owner-only delete + verify gone), and /api/social/follows + feed + discover (self-follow 400, idempotency, follower/following stats, feed includes own & followed, discover excludes self, follow-unknown 404). ALL 12 PASS (3.86s). Frontend smoke covered: (1) onboarding gate 'Bikin dapur kamu dulu' + start-onboarding-btn appears on first visit; (2) onboarding flow — nickname-input + avatar-🥗 + onboarding-save-btn persists profile and returns to /sosmed; (3) /sosmed shows tab-feed, tab-discover, share-fab, my-dapur-btn; (4) share modal lists exactly 5 public seeded recipes (private recipes excluded via r.isPublic filter) — testIDs share-pick-seed-camilan-1 etc. confirmed; (5) selecting a recipe + caption + share-publish-btn POSTs to /api/social/posts and returns to feed with the new post visible; (6) own /sosmed/dapur/{me} shows edit-profile-btn (gear), NO follow-toggle-btn, stats (1 Posting / 0 Pengikut / 0 Mengikuti), and post-delete-{id} on own post; (7) created u-test-other via API + post, Jelajah tab shows their post (and excludes own), navigating to /sosmed/dapur/u-test-other shows follow-toggle-btn (Ikuti), no edit gear; (8) tapping follow flips text to 'Mengikuti' and /api/social/follows/check returns following=true; (9) drawer from /sosmed opens, drawer-item-resep navigates back to '/'. ONE TESTID DEVIATION FROM SPEC: PostCard's user header uses testID=`post-user-${post.id}` (post id) instead of `post-user-${post.userId}` (user id) per the review spec — functional onPress still works (it calls onPressUser(post.userId)), but breaks deterministic selector by userId. Carryover (NOT re-flagged): shadow* deprecation on favFab (per main-agent note). No deprecated expo packages detected in new files. No red screens, no PageErrors from sosmed code path.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PostCard user-header testID",
+        "issue": "testID is `post-user-${post.id}` (post id) but review spec + UX intent expects `post-user-${post.userId}` so tests/automation can locate a user's posts by user id. Functionally onPressUser(post.userId) is still called — only the selector key is wrong.",
+        "testID": "post-user-{post.id} (should be post-user-{post.userId})",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_social.py (12 cases, all PASS)",
+    "/app/test_reports/pytest/pytest_social.xml"
+  ],
+  "action_items": [
+    "Change PostCard.tsx line 34: `testID={`post-user-${post.id}`}` → `testID={`post-user-${post.userId}`}` so the testID exposed in the review spec ('Tapping the user header of a post (testID=post-user-{id}) navigates to /sosmed/dapur/{id}') uniquely identifies the user, not the post. (Reference: /app/frontend/src/components/PostCard.tsx:34)",
+    "(Tiny hardening) Conftest fixture_server now tolerates port-in-use (already patched by tester), but main agent may want to switch to a dynamic port to avoid leftover-process collisions in the future. Reference: /app/backend/tests/conftest.py:69-78."
+  ],
+  "critical_code_review_comments": [
+    "server.py: All /api/social/* endpoints correctly project away MongoDB `_id` via {'_id': 0} on every find/find_one — good.",
+    "server.py: upsert_user properly trims nickname, enforces 32-char + 160-char (bio) limits, and uses $set update; idempotent for same id.",
+    "server.py: delete_post enforces ownership (403 if userId mismatch) and 404 if missing — correct.",
+    "server.py: feed always includes own posts (target_ids includes userId) so new users don't see empty feed — good UX choice and matches spec.",
+    "server.py: follow endpoint correctly rejects self-follow (400), validates followedId exists (404), and is idempotent (won't insert duplicate).",
+    "share.tsx correctly filters with `recipes.filter((r) => r.isPublic)` — private recipes never appear in the picker.",
+    "dapur/[id].tsx correctly hides follow-toggle-btn for self and only shows edit-profile-btn when isSelf — no extra guards needed.",
+    "profile.ts saveProfile uses best-effort backend sync wrapped in try/catch — local profile still works if backend is down. Local id generation uses Date.now()+random so collisions are negligible.",
+    "social.ts call<T>() helper correctly surfaces the FastAPI `detail` string via thrown Error — good error UX.",
+    "PostCard timeAgo uses Indonesian relative labels ('baru saja', 'menit lalu', 'jam lalu', 'hari lalu') with proper fallback to toLocaleDateString('id-ID') — consistent localization."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_social.py (new — 12 tests)",
+    "/app/backend/tests/conftest.py (allow reuse_address + tolerate port-in-use so fixture_server doesn't ERROR out social tests if a leftover fixture-server is still running on 8765)"
+  ],
+  "success_rate": {"backend": "100% (12/12 pytest)", "frontend": "100% functional (all 12 scenarios in review_request validated). 1 testID naming deviation reported."},
+  "seed_data_creation": "Created TEST_* users + posts during pytest with class-level cleanup fixtures (removes test users, their posts, and their follow edges). Also created `u-test-other` (Dapur Test, 🥗) + 1 post via /api/social/users + /api/social/posts during web smoke; cleaned up at end. No production data touched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend social endpoints fully covered in /app/backend/tests/test_social.py (12 PASS). Run: `pytest /app/backend/tests/test_social.py -v --junitxml=/app/test_reports/pytest/pytest_social.xml`. Fixture server collision on 127.0.0.1:8765 (leftover from iter-3) is now tolerated by conftest.py — tests will reuse the running server if bind fails. Frontend storage key bumped to recipes.v3; guest profile under guest.profile.v1 (clear both before each manual smoke). The PostCard testID issue is the ONLY deviation worth fixing — the onPressUser callback already receives post.userId, so just rename the testID string.",
+  "rca_of_issue": "PostCard testID mismatch: src/components/PostCard.tsx:34 uses `post-user-${post.id}` (the POST uuid) but the review spec + the use-case (selecting all post-user links belonging to one user) require `post-user-${post.userId}`. The functional onPress is correct — it already navigates to /sosmed/dapur/{post.userId} via `onPressUser?.(post.userId)`. Only the testID identifier string needs to change. One-line fix."
+}

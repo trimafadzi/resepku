@@ -13,4 +13,5 @@ export interface Recipe {
   favorite: boolean;
   createdAt: number;
   sourceUrl?: string | null;
+  isPublic?: boolean;
 }

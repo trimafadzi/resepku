@@ -62,6 +62,7 @@ export default function EditRecipe() {
   const [ingredients, setIngredients] = useState<string[]>([""]);
   const [instructions, setInstructions] = useState<string[]>([""]);
   const [sourceUrl, setSourceUrl] = useState<string | null>(null);
+  const [isPublic, setIsPublic] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // Import-from-URL state
@@ -87,6 +88,7 @@ export default function EditRecipe() {
       setIngredients(r.ingredients.length ? r.ingredients : [""]);
       setInstructions(r.instructions.length ? r.instructions : [""]);
       setSourceUrl(r.sourceUrl ?? null);
+      setIsPublic(r.isPublic ?? false);
     })();
   }, [id]);
 
@@ -179,6 +181,7 @@ export default function EditRecipe() {
       favorite,
       createdAt: editing ? createdAt : Date.now(),
       sourceUrl,
+      isPublic,
     };
     await saveRecipe(recipe);
     if (router.canGoBack()) router.back();
@@ -381,6 +384,32 @@ export default function EditRecipe() {
             })}
           </View>
         </Field>
+
+        {/* Public toggle */}
+        <Pressable
+          testID="public-toggle"
+          onPress={() => setIsPublic((v) => !v)}
+          style={styles.publicRow}
+        >
+          <View style={styles.publicIconWrap}>
+            <Feather
+              name={isPublic ? "globe" : "lock"}
+              size={18}
+              color={isPublic ? colors.success : colors.onSurfaceSecondary}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.publicTitle}>{isPublic ? "Publik" : "Privat"}</Text>
+            <Text style={styles.publicHint}>
+              {isPublic
+                ? "Bisa dibagikan ke feed Sosmed."
+                : "Hanya kamu yang melihat. Aktifkan untuk membagikan."}
+            </Text>
+          </View>
+          <View style={[styles.switch, isPublic && styles.switchOn]}>
+            <View style={[styles.knob, isPublic && styles.knobOn]} />
+          </View>
+        </Pressable>
 
         {/* Ingredients */}
         <Text style={styles.groupLabel}>Bahan-bahan</Text>
@@ -629,6 +658,38 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: colors.surfaceInverse, borderColor: colors.surfaceInverse },
   chipText: { fontFamily: fonts.text, fontSize: 13, color: colors.onSurfaceSecondary },
   chipTextActive: { color: colors.onSurfaceInverse },
+  publicRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    marginTop: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  publicIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  publicTitle: { fontFamily: fonts.display, fontSize: 15, color: colors.onSurface },
+  publicHint: { fontFamily: fonts.text, fontSize: 12, color: colors.onSurfaceSecondary, marginTop: 2 },
+  switch: {
+    width: 44,
+    height: 26,
+    borderRadius: radius.pill,
+    backgroundColor: colors.borderStrong,
+    padding: 3,
+    justifyContent: "center",
+  },
+  switchOn: { backgroundColor: colors.brand },
+  knob: { width: 20, height: 20, borderRadius: radius.pill, backgroundColor: colors.surface },
+  knobOn: { alignSelf: "flex-end" },
   groupLabel: {
     fontFamily: fonts.display,
     fontSize: 18,

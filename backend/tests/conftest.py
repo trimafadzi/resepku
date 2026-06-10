@@ -68,7 +68,14 @@ class FixtureHandler(http.server.BaseHTTPRequestHandler):
 
 @pytest.fixture(scope="session", autouse=True)
 def fixture_server():
-    httpd = socketserver.TCPServer((FIXTURE_HOST, FIXTURE_PORT), FixtureHandler)
+    socketserver.TCPServer.allow_reuse_address = True
+    try:
+        httpd = socketserver.TCPServer((FIXTURE_HOST, FIXTURE_PORT), FixtureHandler)
+    except OSError:
+        # Port already taken by a leftover fixture server — assume it serves the same content.
+        yield {"recipe_url": f"http://{FIXTURE_HOST}:{FIXTURE_PORT}/recipe",
+               "empty_url": f"http://{FIXTURE_HOST}:{FIXTURE_PORT}/empty"}
+        return
     httpd.allow_reuse_address = True
     t = threading.Thread(target=httpd.serve_forever, daemon=True)
     t.start()

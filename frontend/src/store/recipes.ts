@@ -5,8 +5,8 @@ import { storage } from "@/src/utils/storage";
 import { SEED_RECIPES } from "../data/seed";
 import { Recipe } from "../types";
 
-const RECIPES_KEY = "recipes.v2";
-const SEED_FLAG_KEY = "recipes.seeded.v2";
+const RECIPES_KEY = "recipes.v3";
+const SEED_FLAG_KEY = "recipes.seeded.v3";
 
 async function readAll(): Promise<Recipe[]> {
   const raw = await storage.getItem<string>(RECIPES_KEY, "");

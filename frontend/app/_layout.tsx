@@ -36,6 +36,15 @@ export default function RootLayout() {
         >
           <Stack.Screen name="index" />
           <Stack.Screen name="sosmed" options={{ animation: "fade" }} />
+          <Stack.Screen
+            name="sosmed/onboarding"
+            options={{ presentation: "modal", animation: "slide_from_bottom" }}
+          />
+          <Stack.Screen
+            name="sosmed/share"
+            options={{ presentation: "modal", animation: "slide_from_bottom" }}
+          />
+          <Stack.Screen name="sosmed/dapur/[id]" options={{ animation: "slide_from_right" }} />
           <Stack.Screen name="recipe/[id]" options={{ animation: "slide_from_right" }} />
           <Stack.Screen
             name="recipe/edit"
