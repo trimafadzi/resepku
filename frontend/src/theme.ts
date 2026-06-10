@@ -48,9 +48,16 @@ export const fonts = {
   text: Platform.select({ ios: "System", android: "sans-serif", default: "System" })!,
 };
 
-export type Category = "Breakfast" | "Lunch" | "Dinner" | "Dessert" | "Snack";
+// Kategori resep (Bahasa Indonesia)
+export type Category = "Sarapan" | "Makan Siang" | "Makan Malam" | "Pencuci Mulut" | "Camilan";
 
-export const CATEGORIES: Category[] = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"];
+export const CATEGORIES: Category[] = [
+  "Sarapan",
+  "Makan Siang",
+  "Makan Malam",
+  "Pencuci Mulut",
+  "Camilan",
+];
 
-export const DIFFICULTIES = ["Easy", "Medium", "Hard"] as const;
+export const DIFFICULTIES = ["Mudah", "Sedang", "Sulit"] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];

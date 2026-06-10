@@ -20,15 +20,15 @@ import { useRecipes } from "@/src/store/recipes";
 import { CATEGORIES, Category, colors, fonts, radius, spacing } from "@/src/theme";
 import { Recipe } from "@/src/types";
 
-type Filter = "All" | Category;
-const FILTERS: Filter[] = ["All", ...CATEGORIES];
+type Filter = "Semua" | Category;
+const FILTERS: Filter[] = ["Semua", ...CATEGORIES];
 
 export default function Home() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { recipes, loading, refresh } = useRecipes();
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<Filter>("All");
+  const [filter, setFilter] = useState<Filter>("Semua");
 
   useFocusEffect(
     useCallback(() => {
@@ -46,7 +46,7 @@ export default function Home() {
   }, [recipes, query]);
 
   const filtered = useMemo(() => {
-    if (filter === "All") return searched;
+    if (filter === "Semua") return searched;
     return searched.filter((r) => r.category === filter);
   }, [searched, filter]);
 
@@ -65,12 +65,12 @@ export default function Home() {
     return (
       <SafeAreaView style={styles.loaderWrap}>
         <ActivityIndicator color={colors.brand} />
-        <Text style={styles.loaderText}>Warming the ovens...</Text>
+        <Text style={styles.loaderText}>Memanaskan oven...</Text>
       </SafeAreaView>
     );
   }
 
-  const showFeatured = !query && filter === "All" && featured;
+  const showFeatured = !query && filter === "Semua" && featured;
 
   return (
     <View style={styles.root}>
@@ -79,8 +79,8 @@ export default function Home() {
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]} testID="home-header">
         <View style={styles.headerTopRow}>
           <View>
-            <Text style={styles.eyebrow}>Today&apos;s kitchen</Text>
-            <Text style={styles.title}>Recipe Vault</Text>
+            <Text style={styles.eyebrow}>Dapur Hari Ini</Text>
+            <Text style={styles.title}>Buku Resep</Text>
           </View>
           <Pressable
             testID="add-recipe-fab"
@@ -97,7 +97,7 @@ export default function Home() {
             testID="search-input"
             value={query}
             onChangeText={setQuery}
-            placeholder="Search by title or ingredient"
+            placeholder="Cari judul atau bahan"
             placeholderTextColor={colors.onSurfaceTertiary}
             style={styles.searchInput}
             returnKeyType="search"
@@ -164,16 +164,16 @@ function FeaturedCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void
         locations={[0, 0.5, 1]}
       />
       <View style={styles.featuredOverlay}>
-        <Text style={styles.featuredEyebrow}>FEATURED · {recipe.category.toUpperCase()}</Text>
+        <Text style={styles.featuredEyebrow}>PILIHAN · {recipe.category.toUpperCase()}</Text>
         <Text style={styles.featuredTitle} numberOfLines={2}>
           {recipe.title}
         </Text>
         <View style={styles.featuredMeta}>
           <Feather name="clock" size={14} color={colors.onSurfaceInverse} />
-          <Text style={styles.featuredMetaText}>{recipe.cookTime} min</Text>
+          <Text style={styles.featuredMetaText}>{recipe.cookTime} mnt</Text>
           <View style={styles.dot} />
           <Feather name="users" size={14} color={colors.onSurfaceInverse} />
-          <Text style={styles.featuredMetaText}>{recipe.servings} serves</Text>
+          <Text style={styles.featuredMetaText}>{recipe.servings} porsi</Text>
         </View>
       </View>
     </Pressable>
@@ -230,7 +230,7 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
       </Text>
       <View style={styles.cardMeta}>
         <Feather name="clock" size={12} color={colors.onSurfaceSecondary} />
-        <Text style={styles.cardMetaText}>{recipe.cookTime}m</Text>
+        <Text style={styles.cardMetaText}>{recipe.cookTime} mnt</Text>
         <View style={styles.cardMetaDivider} />
         <Text style={styles.cardMetaText}>{recipe.difficulty}</Text>
       </View>
@@ -245,17 +245,17 @@ function EmptyState({ onAdd, hasQuery }: { onAdd: () => void; hasQuery: boolean 
         <Feather name={hasQuery ? "search" : "book-open"} size={28} color={colors.brand} />
       </View>
       <Text style={styles.emptyTitle}>
-        {hasQuery ? "No matching recipes" : "Your recipe book is empty"}
+        {hasQuery ? "Resep tidak ditemukan" : "Buku resepmu masih kosong"}
       </Text>
       <Text style={styles.emptyBody}>
         {hasQuery
-          ? "Try a different keyword or clear the search."
-          : "Start by adding your first recipe."}
+          ? "Coba kata kunci lain atau bersihkan pencarian."
+          : "Mulai dengan menambahkan resep pertamamu."}
       </Text>
       {!hasQuery ? (
         <Pressable testID="empty-add-btn" onPress={onAdd} style={styles.emptyBtn}>
           <Feather name="plus" size={16} color={colors.onBrandPrimary} />
-          <Text style={styles.emptyBtnText}>Add First Recipe</Text>
+          <Text style={styles.emptyBtnText}>Tambah Resep Pertama</Text>
         </Pressable>
       ) : null}
     </View>

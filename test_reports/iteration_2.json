@@ -1,0 +1,39 @@
+{
+  "summary": "Full backend + frontend regression for the Bahasa Indonesia translation AND the new 'Impor dari URL' feature. Backend pytest suite (6/6 passing): /api/recipes/import happy-path against fixture http.server returns title 'Nasi Goreng Spesial', 4 ingredients, 4 instructions, cookTime=30, servings=4 from JSON-LD; invalid URL returns 400 'URL harus diawali http:// atau https://'; valid URL with no recipe returns 422 'Tidak menemukan resep di halaman ini.'; blank and missing-field URLs validated; root /api/ works. Frontend (mobile viewport 390x844 via web preview): after clearing recipes.v1 + reload, all UI strings rendered in Bahasa Indonesia — header 'DAPUR HARI INI' / 'Buku Resep', search placeholder 'Cari judul atau bahan', filter chips Semua/Sarapan/Makan Siang/Makan Malam/Pencuci Mulut/Camilan, featured eyebrow 'PILIHAN · MAKAN MALAM', meta 'X mnt' & 'X porsi'. Seed recipes v2 are Indonesian (Pancake Buttermilk, Salad Ayam Panggang, Spaghetti Pomodoro Klasik, Kue Lapis Cokelat Pekat, Trail Mix Almond Madu). Detail screen labels MEMASAK/PORSI/TINGKAT + 'Bahan-bahan' / 'Cara membuat'. Edit form: header 'Resep baru', labels JUDUL/KATEGORI/WAKTU MASAK (MNT)/PORSI/TINGKAT KESULITAN, save 'Simpan resep'. Import flow end-to-end: open-import-btn opens import-panel; submitting empty/invalid URL shows import-error in Indonesian ('Masukkan URL terlebih dahulu.' / 'URL harus diawali http:// atau https://'); submitting fixture URL http://127.0.0.1:8765/recipe auto-populates title, image, 4 ingredients, 4 instructions, cookTime=30, servings=4, shows import-banner 'Resep berhasil diimpor. Periksa kembali sebelum menyimpan.'; user can edit title and Save (testID save-recipe-btn) → recipe appears on home grouped under Makan Malam. NOTE: An initial test run before restarting expo returned a stale bundle still showing English header 'TODAY'S KITCHEN / Recipe Vault' — sudo supervisorctl restart expo cleared it. Metro is running in CI mode (no watch); main agent should restart expo after any UI string change.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "StyleSheet shadow props (web)", "issue": "Console warnings persist: '\"shadow*\" style props are deprecated. Use \"boxShadow\".' Originating from favFab in /app/frontend/app/recipe/[id].tsx:258-262. Cosmetic only — RN web only, native unaffected."}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/conftest.py",
+    "/app/backend/tests/test_recipes_import.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Carryover from iteration 1, still unresolved) In /app/frontend/app/recipe/[id].tsx onDelete, fall back to router.replace('/') when !router.canGoBack() so direct deep-link delete returns user to home.",
+    "(Optional cosmetic) Replace shadow* style props on favFab with cross-platform boxShadow to silence RN web deprecation warning.",
+    "Heads-up: Metro is started in CI mode (no watch). After changing UI strings, main agent must `sudo supervisorctl restart expo` to rebundle, otherwise a stale bundle (English copy) is served."
+  ],
+  "critical_code_review_comments": [
+    "Backend /api/recipes/import correctly walks JSON-LD lists / @graph and falls back to OG title/image; Indonesian detail strings on both 400 and 422 paths. ISO 8601 duration parser handles PT30M and PT1H30M.",
+    "Frontend edit.tsx import handler properly disables submit while pending, surfaces backend's Indonesian error via `data.detail`, clears state on retry, and only renders the import block when !editing (correct — import should not appear on edit-existing).",
+    "Storage key bumped to recipes.v2 — existing v1 data is ignored on first load (verified by clearing localStorage and seeing v2 Indonesian seeds appear).",
+    "All new testIDs requested (open-import-btn, import-panel, import-url-input, import-submit-btn, import-error, import-banner, save-recipe-btn) are present and stable."
+  ],
+  "updated_files": [
+    "/app/backend/tests/__init__.py (new)",
+    "/app/backend/tests/conftest.py (new)",
+    "/app/backend/tests/test_recipes_import.py (new)"
+  ],
+  "success_rate": {"backend": "100% (6/6 pytest)", "frontend": "100% (all 9 scenarios in this round)"},
+  "seed_data_creation": "Created one test recipe 'Nasi Goreng Test' via the import-then-edit-then-save happy path; remains in localStorage (recipes.v2). Backend has no DB writes for this feature.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "App is fully translated to Bahasa Indonesia and storage key is recipes.v2. Public URL: https://meal-keeper-2.preview.emergentagent.com. Backend import endpoint POST /api/recipes/import accepts {url} and returns {title,image,ingredients[],instructions[],cookTime,servings}. For happy-path tests DO NOT use real recipe sites (allrecipes/simplyrecipes return 402 to bots); spin up a tiny Python http.server like /tmp/fixture_server.py serving a JSON-LD Recipe and POST that URL. pytest harness in /app/backend/tests/conftest.py spawns this fixture on 127.0.0.1:8765 automatically. Metro runs in CI mode — restart expo via supervisorctl after any UI string change. Known carryover from iter 1: deep-link delete still uses router.back() without canGoBack fallback.",
+  "rca_of_issue": "N/A — no new regressions found. Initial stale-bundle observation (English header) was resolved by `sudo supervisorctl restart expo`, which forced Metro to rebundle from disk. Root cause: Metro's CI mode (EXPO CI=true) disables file-watch reloads, so edits to index.tsx/edit.tsx/[id].tsx after the process started were not picked up until restart."
+}

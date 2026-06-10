@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -33,6 +34,17 @@ function uid() {
   return `r_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? "";
+
+interface ImportedPayload {
+  title: string;
+  image: string | null;
+  ingredients: string[];
+  instructions: string[];
+  cookTime: number | null;
+  servings: number | null;
+}
+
 export default function EditRecipe() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -40,8 +52,8 @@ export default function EditRecipe() {
   const editing = !!id;
 
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<Category>("Dinner");
-  const [difficulty, setDifficulty] = useState<Difficulty>("Easy");
+  const [category, setCategory] = useState<Category>("Makan Malam");
+  const [difficulty, setDifficulty] = useState<Difficulty>("Mudah");
   const [cookTime, setCookTime] = useState("");
   const [servings, setServings] = useState("");
   const [image, setImage] = useState<string | null>(null);
@@ -50,6 +62,13 @@ export default function EditRecipe() {
   const [ingredients, setIngredients] = useState<string[]>([""]);
   const [instructions, setInstructions] = useState<string[]>([""]);
   const [error, setError] = useState<string | null>(null);
+
+  // Import-from-URL state
+  const [importOpen, setImportOpen] = useState(false);
+  const [importUrl, setImportUrl] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importBanner, setImportBanner] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -72,7 +91,7 @@ export default function EditRecipe() {
   const pickImage = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      setError("Photo library permission is needed to pick an image.");
+      setError("Izin galeri foto dibutuhkan untuk memilih gambar.");
       return;
     }
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -91,19 +110,55 @@ export default function EditRecipe() {
     }
   };
 
+  const handleImport = async () => {
+    const url = importUrl.trim();
+    if (!url) {
+      setImportError("Masukkan URL terlebih dahulu.");
+      return;
+    }
+    setImporting(true);
+    setImportError(null);
+    setImportBanner(null);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/recipes/import`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.detail || "Gagal mengimpor resep.");
+      }
+      const imported = data as ImportedPayload;
+      setTitle(imported.title || "");
+      if (imported.image) setImage(imported.image);
+      if (imported.ingredients?.length) setIngredients(imported.ingredients);
+      if (imported.instructions?.length) setInstructions(imported.instructions);
+      if (imported.cookTime) setCookTime(String(imported.cookTime));
+      if (imported.servings) setServings(String(imported.servings));
+      setImportOpen(false);
+      setImportUrl("");
+      setImportBanner("Resep berhasil diimpor. Periksa kembali sebelum menyimpan.");
+    } catch (e: any) {
+      setImportError(e?.message || "Gagal mengimpor resep. Coba URL lain.");
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const onSave = async () => {
     if (!title.trim()) {
-      setError("Title is required.");
+      setError("Judul wajib diisi.");
       return;
     }
     const ingredientsClean = ingredients.map((i) => i.trim()).filter(Boolean);
     const instructionsClean = instructions.map((i) => i.trim()).filter(Boolean);
     if (ingredientsClean.length === 0) {
-      setError("Add at least one ingredient.");
+      setError("Tambahkan minimal satu bahan.");
       return;
     }
     if (instructionsClean.length === 0) {
-      setError("Add at least one instruction.");
+      setError("Tambahkan minimal satu langkah.");
       return;
     }
     setError(null);
@@ -135,7 +190,7 @@ export default function EditRecipe() {
         <Pressable testID="edit-close-btn" onPress={() => router.back()} style={styles.headerBtn}>
           <Feather name="x" size={22} color={colors.onSurface} />
         </Pressable>
-        <Text style={styles.headerTitle}>{editing ? "Edit recipe" : "New recipe"}</Text>
+        <Text style={styles.headerTitle}>{editing ? "Ubah resep" : "Resep baru"}</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -146,6 +201,80 @@ export default function EditRecipe() {
         }}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Import from URL */}
+        {!editing ? (
+          <View style={styles.importBlock}>
+            {!importOpen ? (
+              <Pressable
+                testID="open-import-btn"
+                onPress={() => setImportOpen(true)}
+                style={styles.importToggle}
+              >
+                <Feather name="link" size={16} color={colors.brand} />
+                <Text style={styles.importToggleText}>Impor dari URL</Text>
+                <Feather name="chevron-down" size={16} color={colors.onSurfaceTertiary} />
+              </Pressable>
+            ) : (
+              <View testID="import-panel" style={styles.importPanel}>
+                <View style={styles.importHeader}>
+                  <Feather name="link" size={16} color={colors.brand} />
+                  <Text style={styles.importTitle}>Impor dari URL</Text>
+                  <Pressable
+                    testID="close-import-btn"
+                    onPress={() => {
+                      setImportOpen(false);
+                      setImportError(null);
+                    }}
+                    hitSlop={10}
+                  >
+                    <Feather name="x" size={16} color={colors.onSurfaceSecondary} />
+                  </Pressable>
+                </View>
+                <Text style={styles.importHint}>
+                  Tempel tautan resep, kami akan mengisi form secara otomatis.
+                </Text>
+                <TextInput
+                  testID="import-url-input"
+                  value={importUrl}
+                  onChangeText={setImportUrl}
+                  placeholder="https://contoh.com/resep/..."
+                  placeholderTextColor={colors.onSurfaceTertiary}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="url"
+                  style={styles.input}
+                />
+                {importError ? (
+                  <Text testID="import-error" style={styles.importErrorText}>
+                    {importError}
+                  </Text>
+                ) : null}
+                <Pressable
+                  testID="import-submit-btn"
+                  onPress={handleImport}
+                  disabled={importing}
+                  style={[styles.importSubmit, importing && { opacity: 0.7 }]}
+                >
+                  {importing ? (
+                    <ActivityIndicator color={colors.onBrandPrimary} size="small" />
+                  ) : (
+                    <Feather name="download" size={16} color={colors.onBrandPrimary} />
+                  )}
+                  <Text style={styles.importSubmitText}>
+                    {importing ? "Mengimpor..." : "Impor resep"}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+            {importBanner ? (
+              <View testID="import-banner" style={styles.importBanner}>
+                <Feather name="check-circle" size={14} color={colors.success} />
+                <Text style={styles.importBannerText}>{importBanner}</Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
         {/* Image picker */}
         <Pressable testID="image-picker" onPress={pickImage} style={styles.imagePicker}>
           {image ? (
@@ -153,31 +282,31 @@ export default function EditRecipe() {
           ) : (
             <View style={styles.imagePlaceholder}>
               <Feather name="camera" size={28} color={colors.brand} />
-              <Text style={styles.imagePlaceholderText}>Add a cover photo</Text>
+              <Text style={styles.imagePlaceholderText}>Tambah foto sampul</Text>
             </View>
           )}
           {image ? (
             <View style={styles.imageChange}>
               <Feather name="edit-2" size={14} color={colors.onSurfaceInverse} />
-              <Text style={styles.imageChangeText}>Change</Text>
+              <Text style={styles.imageChangeText}>Ganti</Text>
             </View>
           ) : null}
         </Pressable>
 
         {/* Title */}
-        <Field label="Title">
+        <Field label="Judul">
           <TextInput
             testID="input-title"
             value={title}
             onChangeText={setTitle}
-            placeholder="e.g. Sunday Roast"
+            placeholder="mis. Rendang Sapi"
             placeholderTextColor={colors.onSurfaceTertiary}
             style={styles.input}
           />
         </Field>
 
         {/* Category chips */}
-        <Field label="Category">
+        <Field label="Kategori">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -188,7 +317,7 @@ export default function EditRecipe() {
               return (
                 <Pressable
                   key={c}
-                  testID={`category-chip-${c.toLowerCase()}`}
+                  testID={`category-chip-${c.toLowerCase().replace(/\s+/g, "-")}`}
                   onPress={() => setCategory(c)}
                   style={[styles.chip, active && styles.chipActive]}
                 >
@@ -202,7 +331,7 @@ export default function EditRecipe() {
         {/* Numeric pair */}
         <View style={{ flexDirection: "row", gap: spacing.md }}>
           <View style={{ flex: 1 }}>
-            <Field label="Cook time (min)">
+            <Field label="Waktu masak (mnt)">
               <TextInput
                 testID="input-cooktime"
                 value={cookTime}
@@ -215,7 +344,7 @@ export default function EditRecipe() {
             </Field>
           </View>
           <View style={{ flex: 1 }}>
-            <Field label="Servings">
+            <Field label="Porsi">
               <TextInput
                 testID="input-servings"
                 value={servings}
@@ -230,7 +359,7 @@ export default function EditRecipe() {
         </View>
 
         {/* Difficulty */}
-        <Field label="Difficulty">
+        <Field label="Tingkat kesulitan">
           <View style={styles.chipRow}>
             {DIFFICULTIES.map((d) => {
               const active = d === difficulty;
@@ -249,7 +378,7 @@ export default function EditRecipe() {
         </Field>
 
         {/* Ingredients */}
-        <Text style={styles.groupLabel}>Ingredients</Text>
+        <Text style={styles.groupLabel}>Bahan-bahan</Text>
         {ingredients.map((val, idx) => (
           <View key={idx} style={styles.dynamicRow}>
             <View style={styles.bullet} />
@@ -261,7 +390,7 @@ export default function EditRecipe() {
                 next[idx] = t;
                 setIngredients(next);
               }}
-              placeholder={`Ingredient ${idx + 1}`}
+              placeholder={`Bahan ${idx + 1}`}
               placeholderTextColor={colors.onSurfaceTertiary}
               style={[styles.input, { flex: 1 }]}
             />
@@ -282,11 +411,11 @@ export default function EditRecipe() {
           style={styles.addRowBtn}
         >
           <Feather name="plus" size={16} color={colors.brand} />
-          <Text style={styles.addRowText}>Add ingredient</Text>
+          <Text style={styles.addRowText}>Tambah bahan</Text>
         </Pressable>
 
         {/* Instructions */}
-        <Text style={styles.groupLabel}>Instructions</Text>
+        <Text style={styles.groupLabel}>Cara membuat</Text>
         {instructions.map((val, idx) => (
           <View key={idx} style={styles.dynamicRow}>
             <View style={styles.stepNumWrap}>
@@ -300,7 +429,7 @@ export default function EditRecipe() {
                 next[idx] = t;
                 setInstructions(next);
               }}
-              placeholder={`Step ${idx + 1}`}
+              placeholder={`Langkah ${idx + 1}`}
               placeholderTextColor={colors.onSurfaceTertiary}
               style={[styles.input, styles.multiline]}
               multiline
@@ -322,7 +451,7 @@ export default function EditRecipe() {
           style={styles.addRowBtn}
         >
           <Feather name="plus" size={16} color={colors.brand} />
-          <Text style={styles.addRowText}>Add step</Text>
+          <Text style={styles.addRowText}>Tambah langkah</Text>
         </Pressable>
 
         {error ? (
@@ -341,7 +470,7 @@ export default function EditRecipe() {
       >
         <Pressable testID="save-recipe-btn" onPress={onSave} style={styles.saveBtn}>
           <Feather name="check" size={18} color={colors.onBrandPrimary} />
-          <Text style={styles.saveBtnText}>{editing ? "Save changes" : "Save recipe"}</Text>
+          <Text style={styles.saveBtnText}>{editing ? "Simpan perubahan" : "Simpan resep"}</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -370,6 +499,65 @@ const styles = StyleSheet.create({
   },
   headerBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   headerTitle: { fontFamily: fonts.display, fontSize: 18, color: colors.onSurface },
+
+  importBlock: { marginTop: spacing.lg },
+  importToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.brandTertiary,
+    backgroundColor: "#FAF3EC",
+  },
+  importToggleText: {
+    flex: 1,
+    fontFamily: fonts.text,
+    fontSize: 14,
+    color: colors.brand,
+    fontWeight: "500",
+  },
+  importPanel: {
+    backgroundColor: "#FAF3EC",
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.brandTertiary,
+    gap: spacing.md,
+  },
+  importHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  importTitle: {
+    flex: 1,
+    fontFamily: fonts.display,
+    fontSize: 16,
+    color: colors.onSurface,
+  },
+  importHint: { fontFamily: fonts.text, fontSize: 12, color: colors.onSurfaceSecondary, marginTop: -spacing.sm },
+  importErrorText: { fontFamily: fonts.text, fontSize: 12, color: colors.error },
+  importSubmit: {
+    backgroundColor: colors.brand,
+    height: 44,
+    borderRadius: radius.pill,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+  },
+  importSubmitText: { fontFamily: fonts.text, color: colors.onBrandPrimary, fontSize: 14, fontWeight: "500" },
+  importBanner: {
+    marginTop: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: "#EFF4EC",
+    borderRadius: radius.md,
+  },
+  importBannerText: { flex: 1, fontFamily: fonts.text, fontSize: 12, color: colors.success },
+
   imagePicker: {
     width: "100%",
     aspectRatio: 16 / 10,

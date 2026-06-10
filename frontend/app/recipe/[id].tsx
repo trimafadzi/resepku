@@ -64,9 +64,9 @@ export default function RecipeDetail() {
   if (!recipe) {
     return (
       <View style={[styles.loaderWrap, { paddingHorizontal: spacing.xl }]}>
-        <Text style={styles.missing}>This recipe is no longer here.</Text>
+        <Text style={styles.missing}>Resep ini sudah tidak ada.</Text>
         <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))} style={styles.backBtnSolid}>
-          <Text style={styles.backBtnSolidText}>Go back</Text>
+          <Text style={styles.backBtnSolidText}>Kembali</Text>
         </Pressable>
       </View>
     );
@@ -135,15 +135,15 @@ export default function RecipeDetail() {
         <View style={styles.body}>
           {/* Meta strip */}
           <View style={styles.metaRow}>
-            <MetaCell icon="clock" label="Cook" value={`${recipe.cookTime} min`} />
+            <MetaCell icon="clock" label="Memasak" value={`${recipe.cookTime} mnt`} />
             <View style={styles.metaDivider} />
-            <MetaCell icon="users" label="Serves" value={`${recipe.servings}`} />
+            <MetaCell icon="users" label="Porsi" value={`${recipe.servings}`} />
             <View style={styles.metaDivider} />
-            <MetaCell icon="bar-chart-2" label="Level" value={recipe.difficulty} />
+            <MetaCell icon="bar-chart-2" label="Tingkat" value={recipe.difficulty} />
           </View>
 
           {/* Ingredients */}
-          <Text style={styles.sectionHeading}>Ingredients</Text>
+          <Text style={styles.sectionHeading}>Bahan-bahan</Text>
           <View style={{ marginBottom: spacing.xl }}>
             {recipe.ingredients.map((ing, idx) => (
               <View key={idx} style={styles.ingredientRow} testID={`ingredient-${idx}`}>
@@ -154,7 +154,7 @@ export default function RecipeDetail() {
           </View>
 
           {/* Instructions */}
-          <Text style={styles.sectionHeading}>Instructions</Text>
+          <Text style={styles.sectionHeading}>Cara membuat</Text>
           <View>
             {recipe.instructions.map((step, idx) => (
               <View key={idx} style={styles.stepRow} testID={`step-${idx}`}>
