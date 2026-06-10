@@ -1,0 +1,159 @@
+{
+  "app_name": "RecipeVault",
+  "personality": "3 Editorial Mobile LIGHT",
+  "personality_one_liner": "An elegant, warm, and content-led culinary journal where food photography and typography take center stage.",
+  "color": {
+    "surface": "#FDFBF7",
+    "onSurface": "#2A2724",
+    "surfaceSecondary": "#F4EFE6",
+    "onSurfaceSecondary": "#4A4540",
+    "surfaceTertiary": "#EAE3D5",
+    "onSurfaceTertiary": "#5C5650",
+    "surfaceInverse": "#2A2724",
+    "onSurfaceInverse": "#FDFBF7",
+    "brand": "#C85A32",
+    "brandPrimary": "#C85A32",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#84937B",
+    "onBrandSecondary": "#FFFFFF",
+    "brandTertiary": "#E8D8CA",
+    "onBrandTertiary": "#6B4F3A",
+    "success": "#6A825C",
+    "onSuccess": "#FFFFFF",
+    "warning": "#D49A44",
+    "onWarning": "#FFFFFF",
+    "error": "#B84A43",
+    "onError": "#FFFFFF",
+    "info": "#84937B",
+    "onInfo": "#FFFFFF",
+    "border": "#E8E3DB",
+    "borderStrong": "#D1C9BE",
+    "divider": "#E8E3DB"
+  },
+  "typography": {
+    "displayFontFamily": "Fraunces",
+    "textFontFamily": "DM Sans",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Use magazine-like spacing rhythms with generous vertical breathing room. Let typography and whitespace carry the hierarchy. Elements should feel grouped logically, not cramped.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": 0,
+  "navigation": "bottom_tabs",
+  "icon_set": "Feather",
+  "glassmorphism": {
+    "enabled": true,
+    "do's": [
+      "Use frosted glass over food imagery on featured/hero cards to preserve readability.",
+      "Apply to sticky top headers when content scrolls underneath to maintain editorial elegance.",
+      "Use on the bottom tab bar to create seamless scrolling depth."
+    ],
+    "dont's": [
+      "Never use glass on plain form inputs, buttons, or standard list items.",
+      "Avoid heavy blurs that completely obscure the warmth of the background images."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Home",
+      "purpose": "A visually inspiring feed and categorized collection of the user's saved recipes.",
+      "states": {
+        "loading": "Centered minimalist spinner with warm text 'Warming the ovens...'",
+        "empty": "Illustration of an empty plate and wooden table, message: 'Your recipe book is empty', CTA: 'Add First Recipe'",
+        "error": "Readable text 'We couldn't fetch your recipes.' + Retry button."
+      },
+      "layout": "1. Sticky Top Search Bar: prominent search input filtering by title/ingredient. \n2. Category Filter Chips: Horizontally scrolling pills directly beneath the search. \n3. Featured Recipe Hero: Full-width card with image, 3-stop gradient scrim, and large typography overlay. \n4. Recipe List Grid: 2-column grid structure utilizing 'flexWrap: wrap' with generous gap. Each item shows a 1:1 image, title in serif, and compact metadata (time, difficulty)."
+    },
+    {
+      "name": "Recipe Detail",
+      "purpose": "An immersive reading experience guiding the cook flawlessly from ingredients to execution.",
+      "states": {
+        "loading": "Centered minimalist spinner",
+        "empty": "N/A - Accessed from existing recipe",
+        "error": "Readable text 'Failed to load this recipe.' + Retry button."
+      },
+      "layout": "1. Hero Image: Edge-to-edge top cover spanning safe area, with a strong vertical gradient scrim (top-to-bottom fade) to ensure text contrast. \n2. Title & Metadata: Large Fraunces title layered onto the bottom of the image, with a glass FAB overlay for 'Favorite'. \n3. Content Sections: Distinct, generously spaced editorial blocks for Ingredients (bulleted) and Instructions (numbered, larger line-height). \n4. Persistent Actions: Keep edit/share capabilities in the header or as floating actions."
+    },
+    {
+      "name": "Add/Edit Recipe",
+      "purpose": "A seamless, distraction-free data entry form.",
+      "states": {
+        "loading": "N/A",
+        "empty": "N/A",
+        "error": "Standard form validation error messages in muted rust (#B84A43)."
+      },
+      "layout": "1. Image Picker Header: A prominent placeholder block (surfaceSecondary) to tap and upload a photo. \n2. Form Fields: Single-column flow with labels strictly above inputs. \n3. Category Select: Chip-based selection instead of a hidden dropdown. \n4. Dynamic Lists: Addable text inputs for ingredients and instructions. \n5. Sticky CTA: 'Save Recipe' pinned above the keyboard in a fixed bottom container."
+    }
+  ],
+  "images": {
+    "breakfast_pancakes": {
+      "url": "https://images.pexels.com/photos/730922/pancakes-food-eat-breakfast-730922.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Stack of fluffy homemade pancakes"
+    },
+    "lunch_salad": {
+      "url": "https://images.pexels.com/photos/842545/pexels-photo-842545.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Fresh salad bowl with grilled chicken"
+    },
+    "dinner_spaghetti": {
+      "url": "https://images.pexels.com/photos/546945/pexels-photo-546945.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Gourmet spaghetti on a white plate"
+    },
+    "dessert_cake": {
+      "url": "https://images.pexels.com/photos/33778514/pexels-photo-33778514.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Rich chocolate cake slice"
+    },
+    "snack_trail_mix": {
+      "url": "https://images.pexels.com/photos/14122549/pexels-photo-14122549.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Healthy trail mix bowl on wooden table"
+    },
+    "empty_state": {
+      "url": "https://images.pexels.com/photos/36583660/pexels-photo-36583660.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Elegant empty plate on a table"
+    }
+  },
+  "haptics": {
+    "favorite_toggle": "impactLight",
+    "category_chip_select": "selection",
+    "save_recipe": "notificationSuccess",
+    "add_ingredient_row": "impactLight"
+  },
+  "instructions_to_main_agent": [
+    "Adopt the 'Editorial Mobile LIGHT' personality. Focus on magazine-style spacing (use xl/2xl tokens), high-contrast readability, and letting food photography dominate the visual hierarchy.",
+    "Typography: Use Fraunces (serif) purely for headings/recipe titles and DM Sans for body text/ingredients. Do not exceed font weight 500.",
+    "Zero tolerance for blue, indigo, or purple. The app's palette relies entirely on warm tones (terracotta, sage, cream, oat).",
+    "Whenever overlaying text on a food image (like the detail screen hero or featured cards), you MUST apply the 3-stop vertical gradient scrim (transparent to >70% surfaceInverse) behind the text.",
+    "Form constraints: Use single-column layouts for the Add/Edit form, labels above inputs, and a sticky 'Save' button fixed above the keyboard inside a KeyboardAvoidingView.",
+    "Seed the app's local storage with the provided food photos (Breakfast/Lunch/Dinner/Dessert/Snack) to ensure the UI is rich immediately upon load."
+  ]
+}
