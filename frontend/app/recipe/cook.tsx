@@ -1,9 +1,9 @@
 import { Feather } from "@expo/vector-icons";
-import { useKeepAwake } from "expo-keep-awake";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useState } from "react";
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Dimensions, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { getRecipeById } from "@/src/store/recipes";
@@ -13,8 +13,14 @@ import { Recipe } from "@/src/types";
 const { width: SCREEN_W } = Dimensions.get("window");
 
 export default function CookMode() {
-  // Layar tetap menyala sepanjang halaman ini terbuka.
-  useKeepAwake();
+  // Gate keep-awake on native — Wake Lock permission errors in web preview.
+  useEffect(() => {
+    if (Platform.OS === "web") return undefined;
+    activateKeepAwakeAsync("cook-mode").catch(() => {});
+    return () => {
+      deactivateKeepAwake("cook-mode");
+    };
+  }, []);
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();

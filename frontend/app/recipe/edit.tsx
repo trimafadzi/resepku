@@ -181,7 +181,8 @@ export default function EditRecipe() {
       sourceUrl,
     };
     await saveRecipe(recipe);
-    router.back();
+    if (router.canGoBack()) router.back();
+    else router.replace("/");
   };
 
   return (

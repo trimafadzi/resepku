@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
@@ -32,12 +32,21 @@ export default function AppDrawer({ open, onClose, active }: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const progress = useSharedValue(open ? 1 : 0);
+  // Keep the tree mounted long enough for the close animation to play out
+  // before unmounting. Otherwise the drawer disappears instantly on close.
+  const [mounted, setMounted] = useState(open);
 
   useEffect(() => {
+    if (open) setMounted(true);
     progress.value = withTiming(open ? 1 : 0, {
       duration: 240,
       easing: Easing.out(Easing.cubic),
     });
+    if (!open) {
+      const t = setTimeout(() => setMounted(false), 260);
+      return () => clearTimeout(t);
+    }
+    return undefined;
   }, [open, progress]);
 
   const backdropStyle = useAnimatedStyle(() => ({
@@ -48,18 +57,19 @@ export default function AppDrawer({ open, onClose, active }: Props) {
     transform: [{ translateX: -DRAWER_W + DRAWER_W * progress.value }],
   }));
 
-  if (!open && progress.value === 0) return null;
+  if (!mounted) return null;
 
   const go = (route: string, key: NavKey) => {
     onClose();
     if (key === active) return;
-    // Use replace so the drawer entries behave like top-level destinations,
-    // not pushed deeper on the back stack.
     setTimeout(() => router.replace(route as any), 120);
   };
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none" testID="app-drawer-root">
+    <View
+      style={[StyleSheet.absoluteFill, { pointerEvents: "box-none" }]}
+      testID="app-drawer-root"
+    >
       {open ? (
         <Animated.View style={[StyleSheet.absoluteFillObject, styles.backdrop, backdropStyle]}>
           <Pressable
