@@ -1,0 +1,42 @@
+{
+  "summary": "Frontend-only regression on the 3 newly added features (Source URL, Cook Mode, Sidebar Drawer) plus a smoke check of iter-2 flows on the public preview (mobile viewport 390x844). All 8 requested scenarios PASS. Drawer: hamburger on Home opens app-drawer with drawer-item-resep (active dot) + drawer-item-sosmed; drawer-backdrop tap closes; tapping Sosmed routes to /sosmed which shows 'Sosial Media' title + Indonesian copy 'Halaman ini sedang dipersiapkan...'; hamburger on /sosmed re-opens drawer with active=sosmed and tapping Resep returns to '/'. Cook Mode: every seeded recipe detail shows start-cook-mode-btn → navigates to /recipe/cook?id=X; full-screen dark UI with 'MODE MASAK' eyebrow, recipe title, progress bar, 'Langkah 1 dari N', cook-step-text, cook-next-btn advances steps; last step replaces next with cook-finish-btn (verified by walking 'next' until finish appeared); cook-finish-btn returns to detail; cook-ingredients-btn toggles bullet list of all ingredients under 'Bahan-bahan' heading and toggles back. Source URL: importing http://127.0.0.1:8765/recipe (JSON-LD fixture 'Nasi Goreng Spesial') via add-recipe-fab → open-import-btn → import-submit-btn shows import-banner; save-recipe-btn returns to home; new card visible; opening its detail renders open-source-btn with text 'Lihat sumber resep'. Seeded recipes (without sourceUrl) do NOT render open-source-btn — verified on featured (Spaghetti Pomodoro Klasik) detail. Iteration-2 smoke (Indonesian copy, 5 seed recipes, search/filter chips) all green. Deprecated packages detected: none new in the changed files. React-Native-web warnings detected: shadow* style props deprecation (carryover from iter 2) and 'props.pointerEvents is deprecated. Use style.pointerEvents' from AppDrawer's StyleSheet.absoluteFill wrapper — both web-only and cosmetic. Reanimated strict-mode warning about reading shared value during render originates from AppDrawer.tsx:51 ('if (!open && progress.value === 0) return null;') — should use useDerivedValue or just `if (!open) return null;` after opening guard.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "AppDrawer (reanimated value read during render)", "issue": "Reading `progress.value` directly inside render path triggers `[Reanimated] Reading from value during component render` warning. Reference: /app/frontend/src/components/AppDrawer.tsx:51 — `if (!open && progress.value === 0) return null;`. Use a local state flag toggled inside useAnimatedReaction / onJS callback, or simply gate with `if (!open) return null;` after animating out via a withTiming completion callback."},
+      {"component": "AppDrawer (deprecated pointerEvents prop)", "issue": "Console warning: 'props.pointerEvents is deprecated. Use style.pointerEvents'. Reference: /app/frontend/src/components/AppDrawer.tsx:62 — `<View style={StyleSheet.absoluteFill} pointerEvents=\"box-none\" ...>`. Move pointerEvents into the style object."},
+      {"component": "recipe/[id] favFab shadow props (carryover from iter 2)", "issue": "'shadow*' style props are deprecated on RN web. Reference: /app/frontend/app/recipe/[id].tsx favFab style (~line 285-289). Replace with cross-platform boxShadow."},
+      {"component": "recipe/edit save handler (carryover from iter 1/2)", "issue": "After save, router.back() can throw 'GO_BACK was not handled by any navigator' if /recipe/edit is opened as a deep link (no back stack). Reference: /app/frontend/app/recipe/edit.tsx onSave. Add `router.canGoBack() ? router.back() : router.replace('/')` fallback (same pattern already used in detail/cook screens). Non-blocking — happy path via add-recipe-fab still works."},
+      {"component": "recipe/cook expo-keep-awake on web", "issue": "PageError 'Wake Lock permission request denied' is logged on the web preview because expo-keep-awake's web fallback requests the Wake Lock API which the iframe blocks. Not user-visible and won't occur on native, but worth noting — could be gated with `Platform.OS !== 'web'` to silence."}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_recipes_import.py (iter-2; not re-run this round — frontend-only request)",
+    "/tmp/fixture_server.py (JSON-LD recipe fixture on 127.0.0.1:8765, restarted for this round)"
+  ],
+  "action_items": [
+    "Fix Reanimated warning in AppDrawer.tsx:51 — replace the render-time read of `progress.value` with a state-backed unmount signal (e.g. useAnimatedReaction calling runOnJS to setMounted(false), or simply gate on the `open` prop).",
+    "Move `pointerEvents=\"box-none\"` from prop into `style` object in AppDrawer.tsx:62 to silence deprecation warning.",
+    "Add `router.canGoBack()` fallback to /app/frontend/app/recipe/edit.tsx save handler so deep-link edit + save returns user to '/' instead of leaving them stranded on the modal (carryover).",
+    "(Optional / native-build later) Gate `useKeepAwake()` in /app/frontend/app/recipe/cook.tsx with `Platform.OS !== 'web'` to avoid the Wake Lock permission-denied pageerror in web preview.",
+    "(Optional cosmetic, still open from iter 2) Replace shadow* style props on favFab with boxShadow."
+  ],
+  "critical_code_review_comments": [
+    "AppDrawer correctly uses replace() for top-level destinations (so back stack stays flat) and short 120 ms timeout to let the close animation start before navigation — good UX.",
+    "Cook mode correctly clamps step bounds, hides progress bar division-by-zero (`total > 0 ? ... : 0`), and has BOTH a primary 'Langkah berikutnya'/'Selesai' button AND a circular next chevron — the circular one (testID cook-next-btn-circle) duplicates next-step. Functional but slightly redundant; not a bug.",
+    "recipe/[id].tsx correctly conditionally renders open-source-btn only when `recipe.sourceUrl` is truthy (line 157) and uses expo-linking openURL — good.",
+    "Recipe type at /app/frontend/src/types.ts now correctly declares `sourceUrl?: string | null` (optional + nullable) so legacy stored recipes without the field don't break TypeScript narrowing.",
+    "Drawer width math `Math.min(SCREEN_W * 0.78, 320)` and translateX interpolation are correct; backdrop tap area is full-screen via StyleSheet.absoluteFillObject.",
+    "Sidebar correctly does NOT push deeper on back stack (uses replace) — verified by going Home → Sosmed → Resep and not seeing any duplicate history entries."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only request)", "frontend": "100% (8/8 requested scenarios + 2 smoke checks)"},
+  "seed_data_creation": "Re-imported 'Nasi Goreng Spesial' via the in-app import flow with the local fixture (http://127.0.0.1:8765/recipe). Persisted to localStorage key recipes.v2 with sourceUrl set. No backend writes.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All 3 new features (Source URL, Cook Mode, Drawer) are working end-to-end on the public preview at https://meal-keeper-2.preview.emergentagent.com (mobile viewport 390x844). Storage key is recipes.v2; seeded recipes have NO sourceUrl so they correctly hide open-source-btn. To test sourceUrl persistence: start `python3 /tmp/fixture_server.py &` (port 8765, JSON-LD Nasi Goreng), open the app via add-recipe-fab (NOT direct /recipe/edit deep-link or save->router.back() throws GO_BACK), import the URL, save, search 'Nasi Goreng' on home, open detail — open-source-btn renders. Cook mode uses expo-keep-awake which throws a non-fatal 'Wake Lock permission request denied' pageerror in web preview only. Drawer uses react-native-reanimated (not @react-navigation/drawer) and emits a strict-mode warning about reading shared value during render — see action_items. Metro still in CI mode: restart expo via supervisorctl after any UI change.",
+  "rca_of_issue": "N/A — no functional regressions. Two minor dev-only warnings (Reanimated value-during-render in AppDrawer.tsx:51 and deprecated pointerEvents prop at AppDrawer.tsx:62) were introduced by the new AppDrawer component and should be cleaned up but do not affect users. The 'GO_BACK was not handled' error during the first test run was caused by the test navigating directly to /recipe/edit (no back stack) and then save -> router.back(); in normal user flow (add-recipe-fab -> edit) the back stack is populated and save works correctly, as re-verified in the second run."
+}

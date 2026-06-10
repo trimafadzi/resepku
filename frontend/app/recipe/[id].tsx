@@ -2,6 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Linking from "expo-linking";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useState } from "react";
@@ -142,6 +143,31 @@ export default function RecipeDetail() {
             <MetaCell icon="bar-chart-2" label="Tingkat" value={recipe.difficulty} />
           </View>
 
+          {/* Cook mode */}
+          <Pressable
+            testID="start-cook-mode-btn"
+            onPress={() => router.push(`/recipe/cook?id=${recipe.id}`)}
+            style={styles.cookBtn}
+          >
+            <Feather name="play-circle" size={18} color={colors.onBrandPrimary} />
+            <Text style={styles.cookBtnText}>Mulai Mode Masak</Text>
+          </Pressable>
+
+          {/* Source URL */}
+          {recipe.sourceUrl ? (
+            <Pressable
+              testID="open-source-btn"
+              onPress={() => Linking.openURL(recipe.sourceUrl as string)}
+              style={styles.sourceBtn}
+            >
+              <Feather name="link" size={14} color={colors.brand} />
+              <Text style={styles.sourceBtnText} numberOfLines={1}>
+                Lihat sumber resep
+              </Text>
+              <Feather name="external-link" size={14} color={colors.onSurfaceTertiary} />
+            </Pressable>
+          ) : null}
+
           {/* Ingredients */}
           <Text style={styles.sectionHeading}>Bahan-bahan</Text>
           <View style={{ marginBottom: spacing.xl }}>
@@ -268,7 +294,39 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,
     paddingVertical: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  cookBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.brand,
+    height: 52,
+    borderRadius: radius.pill,
+    marginBottom: spacing.md,
+  },
+  cookBtnText: {
+    fontFamily: fonts.text,
+    fontSize: 15,
+    color: colors.onBrandPrimary,
+    fontWeight: "500",
+  },
+  sourceBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
     marginBottom: spacing.xl,
+  },
+  sourceBtnText: {
+    flex: 1,
+    fontFamily: fonts.text,
+    fontSize: 13,
+    color: colors.brand,
   },
   metaCell: { flex: 1, alignItems: "center", gap: 4 },
   metaDivider: { width: StyleSheet.hairlineWidth, backgroundColor: colors.borderStrong },

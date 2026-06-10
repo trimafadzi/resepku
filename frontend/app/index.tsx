@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import AppDrawer from "@/src/components/AppDrawer";
 import { useRecipes } from "@/src/store/recipes";
 import { CATEGORIES, Category, colors, fonts, radius, spacing } from "@/src/theme";
 import { Recipe } from "@/src/types";
@@ -29,6 +30,7 @@ export default function Home() {
   const { recipes, loading, refresh } = useRecipes();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("Semua");
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -78,7 +80,15 @@ export default function Home() {
       {/* Sticky header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]} testID="home-header">
         <View style={styles.headerTopRow}>
-          <View>
+          <Pressable
+            testID="open-drawer-btn"
+            onPress={() => setDrawerOpen(true)}
+            hitSlop={10}
+            style={styles.menuBtn}
+          >
+            <Feather name="menu" size={22} color={colors.onSurface} />
+          </Pressable>
+          <View style={{ flex: 1 }}>
             <Text style={styles.eyebrow}>Dapur Hari Ini</Text>
             <Text style={styles.title}>Buku Resep</Text>
           </View>
@@ -150,6 +160,8 @@ export default function Home() {
           />
         )}
       />
+
+      <AppDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} active="resep" />
     </View>
   );
 }
@@ -283,8 +295,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: spacing.md,
     marginBottom: spacing.md,
   },
+  menuBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center", marginLeft: -spacing.sm },
   eyebrow: {
     fontFamily: fonts.text,
     fontSize: 11,

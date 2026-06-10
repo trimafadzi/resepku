@@ -61,6 +61,7 @@ export default function EditRecipe() {
   const [createdAt, setCreatedAt] = useState<number>(Date.now());
   const [ingredients, setIngredients] = useState<string[]>([""]);
   const [instructions, setInstructions] = useState<string[]>([""]);
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Import-from-URL state
@@ -85,6 +86,7 @@ export default function EditRecipe() {
       setCreatedAt(r.createdAt);
       setIngredients(r.ingredients.length ? r.ingredients : [""]);
       setInstructions(r.instructions.length ? r.instructions : [""]);
+      setSourceUrl(r.sourceUrl ?? null);
     })();
   }, [id]);
 
@@ -136,6 +138,7 @@ export default function EditRecipe() {
       if (imported.instructions?.length) setInstructions(imported.instructions);
       if (imported.cookTime) setCookTime(String(imported.cookTime));
       if (imported.servings) setServings(String(imported.servings));
+      setSourceUrl(url);
       setImportOpen(false);
       setImportUrl("");
       setImportBanner("Resep berhasil diimpor. Periksa kembali sebelum menyimpan.");
@@ -175,6 +178,7 @@ export default function EditRecipe() {
       difficulty,
       favorite,
       createdAt: editing ? createdAt : Date.now(),
+      sourceUrl,
     };
     await saveRecipe(recipe);
     router.back();

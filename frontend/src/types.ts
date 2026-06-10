@@ -12,4 +12,5 @@ export interface Recipe {
   difficulty: Difficulty;
   favorite: boolean;
   createdAt: number;
+  sourceUrl?: string | null;
 }

@@ -35,10 +35,18 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="index" />
+          <Stack.Screen name="sosmed" options={{ animation: "fade" }} />
           <Stack.Screen name="recipe/[id]" options={{ animation: "slide_from_right" }} />
           <Stack.Screen
             name="recipe/edit"
             options={{ presentation: "modal", animation: "slide_from_bottom" }}
+          />
+          <Stack.Screen
+            name="recipe/cook"
+            options={{
+              presentation: "fullScreenModal",
+              animation: "slide_from_bottom",
+            }}
           />
         </Stack>
       </SafeAreaProvider>
