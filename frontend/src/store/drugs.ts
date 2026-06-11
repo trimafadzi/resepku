@@ -14,10 +14,12 @@ export interface Drug {
 }
 
 export interface DrugInfoPayload {
+  name?: string;
   komposisi: string;
   kegunaan: string;
   cara_pakai: string;
   indikasi: string;
+  warning?: string | null;
 }
 
 export const drugsStore = {

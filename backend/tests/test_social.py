@@ -278,6 +278,7 @@ class TestNewFeatures:
         r = api_client.post(f"{base_url}/api/drugs/info", json={"name": "Paracetamol"})
         assert r.status_code == 200
         data = r.json()
+        assert data["name"] == "Paracetamol"
         assert "komposisi" in data
         assert "Paracetamol" in data["komposisi"]
         assert "demam" in data["kegunaan"]
@@ -288,9 +289,17 @@ class TestNewFeatures:
         r = api_client.post(f"{base_url}/api/drugs/info", json={"name": "ObatAnehLangka"})
         assert r.status_code == 200
         data = r.json()
-        assert "komposisi" in data
-        assert "ObatAnehLangka" in data["komposisi"]
-        assert "kegunaan" in data
-        assert "cara_pakai" in data
-        assert "indikasi" in data
-        assert "GEMINI_API_KEY" in data["indikasi"]
+        assert data["name"] == "ObatAnehLangka"
+        assert data["komposisi"] == "-"
+        assert "warning" in data
+        assert "ObatAnehLangka" in data["warning"]
+
+    def test_drug_info_typo(self, base_url, api_client):
+        r = api_client.post(f"{base_url}/api/drugs/info", json={"name": "paracetmol"})
+        assert r.status_code == 200
+        data = r.json()
+        assert data["name"] == "Paracetamol"
+        assert "Paracetamol" in data["komposisi"]
+        assert "warning" in data
+        assert data["warning"] is not None
+        assert "paracetmol" in data["warning"]

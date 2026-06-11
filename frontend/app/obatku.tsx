@@ -30,6 +30,7 @@ export default function ObatkuScreen() {
   const [kegunaan, setKegunaan] = useState("");
   const [caraPakai, setCaraPakai] = useState("");
   const [indikasi, setIndikasi] = useState("");
+  const [warning, setWarning] = useState<string | null>(null);
 
   // UI States
   const [searching, setSearching] = useState(false);
@@ -59,12 +60,17 @@ export default function ObatkuScreen() {
     }
     Keyboard.dismiss();
     setSearching(true);
+    setWarning(null);
     try {
       const info = await drugsStore.fetchInfo(name);
       setKomposisi(info.komposisi || "");
       setKegunaan(info.kegunaan || "");
       setCaraPakai(info.cara_pakai || "");
       setIndikasi(info.indikasi || "");
+      setWarning(info.warning || null);
+      if (info.name) {
+        setName(info.name);
+      }
     } catch (e: any) {
       Alert.alert(
         "Pencarian Gagal",
@@ -96,6 +102,7 @@ export default function ObatkuScreen() {
       setKegunaan("");
       setCaraPakai("");
       setIndikasi("");
+      setWarning(null);
       // Reload list
       await loadDrugs();
       Alert.alert("Sukses", "Data obat berhasil disimpan!");
@@ -164,7 +171,10 @@ export default function ObatkuScreen() {
             <TextInput
               testID="drug-name-input"
               value={name}
-              onChangeText={setName}
+              onChangeText={(text) => {
+                setName(text);
+                if (warning) setWarning(null);
+              }}
               placeholder="Contoh: Paracetamol, Ibuprofen..."
               style={styles.nameInput}
             />
@@ -193,6 +203,14 @@ export default function ObatkuScreen() {
         {/* Detail Form */}
         <View style={styles.card}>
           <Text style={styles.cardHeaderTitle}>Detail Informasi Obat</Text>
+
+          {/* Warning Banner */}
+          {warning ? (
+            <View style={styles.warningBanner} testID="drug-warning-banner">
+              <Feather name="alert-triangle" size={16} color={colors.warning} />
+              <Text style={styles.warningText}>{warning}</Text>
+            </View>
+          ) : null}
 
           {/* Komposisi */}
           <Text style={styles.fieldLabelSmall}>Komposisi</Text>
@@ -574,6 +592,24 @@ const styles = StyleSheet.create({
     fontFamily: fonts.text,
     fontSize: 13,
     color: colors.onSurface,
+    lineHeight: 18,
+  },
+  warningBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FDF6ED",
+    borderWidth: 1,
+    borderColor: colors.warning,
+    borderRadius: radius.sm,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  warningText: {
+    flex: 1,
+    fontFamily: fonts.text,
+    fontSize: 12,
+    color: "#7B5927",
     lineHeight: 18,
   },
 });

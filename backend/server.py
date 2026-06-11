@@ -583,10 +583,12 @@ class DrugInfoRequest(BaseModel):
 
 
 class DrugInfoResponse(BaseModel):
+    name: str
     komposisi: str
     kegunaan: str
     cara_pakai: str
     indikasi: str
+    warning: Optional[str] = None
 
 
 MOCK_DRUG_DATABASE = {
@@ -623,17 +625,19 @@ async def get_drug_info(payload: DrugInfoRequest):
     # Cek di dataset farmasi Indonesia lokal
     dataset_path = ROOT_DIR / "data" / "indonesian_drugs.json"
     match_data = None
+    warning_msg = None
+
     if dataset_path.exists():
         try:
             with open(dataset_path, "r", encoding="utf-8") as f:
                 local_drugs = json.load(f)
-                # Cari kecocokan persis (case-insensitive)
+                # 1. Cari kecocokan persis (case-insensitive)
                 for drug in local_drugs:
                     if drug["name"].lower() == name_clean:
                         match_data = drug
                         break
                 
-                # Jika tidak ada kecocokan persis, gunakan fuzzy matching terdekat (difflib)
+                # 2. Jika tidak ada kecocokan persis, gunakan fuzzy matching terdekat (difflib)
                 if not match_data:
                     import difflib
                     drug_names = [d["name"] for d in local_drugs]
@@ -643,29 +647,45 @@ async def get_drug_info(payload: DrugInfoRequest):
                         for drug in local_drugs:
                             if drug["name"] == matched_name:
                                 match_data = drug
+                                warning_msg = f"Peringatan: Ejaan nama obat '{payload.name}' kurang tepat. Menampilkan hasil untuk '{matched_name}'."
                                 break
         except Exception:
             pass
 
-    # Fallback ke MOCK_DRUG_DATABASE jika pencarian file gagal
-    if not match_data and name_clean in MOCK_DRUG_DATABASE:
-        match_data = MOCK_DRUG_DATABASE[name_clean]
+    # Fallback ke MOCK_DRUG_DATABASE
+    if not match_data:
+        if name_clean in MOCK_DRUG_DATABASE:
+            match_data = MOCK_DRUG_DATABASE[name_clean].copy()
+            match_data["name"] = name_clean.title()
+        else:
+            import difflib
+            mock_names = list(MOCK_DRUG_DATABASE.keys())
+            close_matches = difflib.get_close_matches(name_clean, mock_names, n=1, cutoff=0.8)
+            if close_matches:
+                matched_name = close_matches[0]
+                match_data = MOCK_DRUG_DATABASE[matched_name].copy()
+                match_data["name"] = matched_name.title()
+                warning_msg = f"Peringatan: Ejaan nama obat '{payload.name}' kurang tepat. Menampilkan hasil untuk '{matched_name.title()}'."
 
     if match_data:
         return DrugInfoResponse(
+            name=match_data.get("name", payload.name.strip().title()),
             komposisi=match_data["komposisi"],
             kegunaan=match_data["kegunaan"],
             cara_pakai=match_data["cara_pakai"],
-            indikasi=match_data["indikasi"]
+            indikasi=match_data["indikasi"],
+            warning=warning_msg
         )
 
     if not api_key:
         name_original = payload.name.strip()
         return DrugInfoResponse(
-            komposisi=f"{name_original} zat aktif tunggal.",
-            kegunaan=f"Digunakan sebagai terapi penunjang atau pengobatan gejala terkait {name_original}.",
-            cara_pakai="Diminum sesuai petunjuk dokter atau petunjuk pada kemasan produk obat.",
-            indikasi=f"Silakan konfigurasikan GEMINI_API_KEY di Pengaturan untuk mendapatkan detail informasi medis {name_original} secara akurat dari internet."
+            name=name_original,
+            komposisi="-",
+            kegunaan="-",
+            cara_pakai="-",
+            indikasi="-",
+            warning=f"Peringatan: Obat '{name_original}' tidak ditemukan di database lokal. Harap periksa kembali ejaan Anda."
         )
 
     try:
@@ -676,10 +696,12 @@ async def get_drug_info(payload: DrugInfoRequest):
         prompt = (
             f"Berikan informasi medis resmi dalam Bahasa Indonesia untuk obat dengan nama: '{payload.name}'. "
             f"Format jawaban wajib dalam bentuk JSON mentah dengan key berikut:\n"
+            f"- 'name': nama resmi obat dengan ejaan yang benar dan baku (misal 'Paracetamol' jika pengguna menginput 'paracetmol').\n"
             f"- 'komposisi': zat aktif dan kandungan obatnya.\n"
             f"- 'kegunaan': manfaat dan kegunaan spesifik obat.\n"
             f"- 'cara_pakai': aturan pakai dan cara minum obat yang lazim.\n"
             f"- 'indikasi': indikasi medis atau kondisi kesehatan yang diobati.\n"
+            f"- 'warning': jika nama obat yang diinput '{payload.name}' mengandung typo atau ejaannya kurang tepat, isi dengan pesan peringatan berbahasa Indonesia (contoh: 'Peringatan: Ejaan nama obat tidak tepat. Menampilkan hasil untuk Paracetamol.'). Jika ejaan sudah benar, isi dengan null.\n"
             f"Ketentuan: Jangan berikan teks pengantar, penutup, atau tanda markdown ```json. Cukup berikan JSON object-nya saja."
         )
         response = model.generate_content(prompt)
@@ -692,19 +714,27 @@ async def get_drug_info(payload: DrugInfoRequest):
             text = "\n".join(cleaned_lines).strip()
             
         data = json.loads(text)
+        resolved_name = str(data.get("name", payload.name.strip())).strip()
+        warning_msg = data.get("warning")
+        if not warning_msg and resolved_name.lower() != payload.name.strip().lower():
+            warning_msg = f"Peringatan: Ejaan nama obat '{payload.name}' kurang tepat. Menampilkan hasil untuk '{resolved_name}'."
         return DrugInfoResponse(
+            name=resolved_name,
             komposisi=str(data.get("komposisi", "Informasi tidak tersedia.")),
             kegunaan=str(data.get("kegunaan", "Informasi tidak tersedia.")),
             cara_pakai=str(data.get("cara_pakai", "Informasi tidak tersedia.")),
-            indikasi=str(data.get("indikasi", "Informasi tidak tersedia."))
+            indikasi=str(data.get("indikasi", "Informasi tidak tersedia.")),
+            warning=warning_msg
         )
     except Exception as e:
         name_original = payload.name.strip()
         return DrugInfoResponse(
-            komposisi=f"{name_original} zat aktif tunggal.",
-            kegunaan=f"Terapi gejala penyakit terkait {name_original}.",
-            cara_pakai="Gunakan sesuai aturan pakai pada kemasan obat.",
-            indikasi=f"Gagal memproses AI: {str(e)}"
+            name=name_original,
+            komposisi="-",
+            kegunaan="-",
+            cara_pakai="-",
+            indikasi="-",
+            warning=f"Peringatan: Gagal memproses informasi obat '{name_original}' via AI: {str(e)}"
         )
 
 
