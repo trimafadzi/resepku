@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Query
+from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -573,6 +574,42 @@ async def generate_caption(payload: GenerateCaptionRequest):
             ingredients=ingredients_str
         )
         return {"caption": caption[:280]}
+
+
+@api_router.get("/mock-recipe-html", response_class=HTMLResponse)
+async def get_mock_recipe_html():
+    html_content = """<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Nasi Goreng Spesial Mock</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Recipe",
+  "name": "Nasi Goreng Spesial Mock",
+  "image": ["https://example.com/nasi-goreng.jpg"],
+  "recipeIngredient": [
+    "3 cangkir nasi putih dingin",
+    "2 siung bawang putih cincang",
+    "2 sdm kecap manis",
+    "1 butir telur ayam"
+  ],
+  "recipeInstructions": [
+    {"@type": "HowToStep", "text": "Panaskan sedikit minyak goreng di wajan."},
+    {"@type": "HowToStep", "text": "Tumis bawang putih hingga harum."},
+    {"@type": "HowToStep", "text": "Masukkan nasi dan kecap manis, aduk rata."},
+    {"@type": "HowToStep", "text": "Tambahkan telur, orak-arik hingga matang."}
+  ],
+  "cookTime": "PT15M",
+  "recipeYield": "2"
+}
+</script>
+</head>
+<body><h1>Nasi Goreng Spesial Mock</h1></body>
+</html>
+"""
+    return HTMLResponse(content=html_content, status_code=200)
 
 
 app.include_router(api_router)
