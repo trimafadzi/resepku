@@ -585,30 +585,38 @@ class DrugInfoRequest(BaseModel):
 class DrugInfoResponse(BaseModel):
     name: str
     komposisi: str
-    kegunaan: str
-    cara_pakai: str
-    indikasi: str
+    dosis_aturan_pakai: str
+    kegunaan_indikasi: str
+    efek_samping: str
+    peringatan_kontradiksi: str
+    merek_dagang: str
     warning: Optional[str] = None
 
 
 MOCK_DRUG_DATABASE = {
     "paracetamol": {
-        "komposisi": "Paracetamol 500 mg per tablet.",
-        "kegunaan": "Meredakan demam, sakit kepala, sakit gigi, dan nyeri ringan hingga sedang.",
-        "cara_pakai": "Dewasa: 1-2 tablet, 3-4 kali sehari setelah makan. Anak-anak: Sesuai petunjuk dokter.",
-        "indikasi": "Nyeri ringan sampai sedang, demam."
+        "komposisi": "Paracetamol 500 mg.",
+        "dosis_aturan_pakai": "Dewasa: 1-2 tablet (500mg-1000mg) 3-4 kali sehari sesudah makan. Anak 6-12 tahun: 1/2-1 tablet 3-4 kali sehari.",
+        "kegunaan_indikasi": "Meringankan demam, sakit kepala, sakit gigi, nyeri otot, dan nyeri ringan sampai sedang.",
+        "efek_samping": "Jarang terjadi. Pada dosis tinggi atau jangka panjang dapat memicu gangguan fungsi hati (hepatotoksik) atau ruam kulit.",
+        "peringatan_kontradiksi": "Peringatan: Hindari konsumsi bersama obat lain yang mengandung paracetamol. Kontraindikasi: Gangguan fungsi hati berat dan hipersensitivitas.",
+        "merek_dagang": "Sanmol, Panadol, Pamol, Biogesic, Tempra."
     },
     "ibuprofen": {
-        "komposisi": "Ibuprofen 200 mg atau 400 mg per tablet.",
-        "kegunaan": "Meredakan nyeri, bengkak, peradangan, serta demam (terutama nyeri sendi, sakit gigi, nyeri haid).",
-        "cara_pakai": "Dewasa: 200-400 mg, 3-4 kali sehari setelah makan. Tidak boleh diminum saat perut kosong.",
-        "indikasi": "Nyeri inflamasi, sakit kepala, sakit gigi, demam."
+        "komposisi": "Ibuprofen 200 mg atau 400 mg.",
+        "dosis_aturan_pakai": "Dewasa: 200-400 mg, 3-4 kali sehari sesudah makan (maksimal 1200 mg per hari). Diminum setelah makan.",
+        "kegunaan_indikasi": "Meredakan nyeri ringan-sedang (sakit gigi, sakit kepala, nyeri haid) dan meredakan peradangan/pembengkakan sendi.",
+        "efek_samping": "Gangguan pencernaan (mual, perut kembung, diare, nyeri lambung), sakit kepala, atau pusing.",
+        "peringatan_kontradiksi": "Peringatan: Hati-hati pada penderita tukak lambung, penyakit jantung, ginjal, atau asma. Kontraindikasi: Tukak lambung aktif, kehamilan trimester akhir.",
+        "merek_dagang": "Proris, Bufect, Farsifen, Fenris."
     },
     "amoxicillin": {
-        "komposisi": "Amoxicillin Trihydrate 500 mg per tablet.",
-        "kegunaan": "Antibiotik untuk mengobati berbagai jenis infeksi bakteri (infeksi saluran pernapasan, kulit, THT, saluran kemih).",
-        "cara_pakai": "Dewasa: 250-500 mg setiap 8 jam. Wajib dihabiskan sesuai resep dokter meskipun gejala sudah mereda.",
-        "indikasi": "Infeksi bakteri sensitif."
+        "komposisi": "Amoxicillin Trihydrate 500 mg.",
+        "dosis_aturan_pakai": "Dewasa: 250-500 mg setiap 8 jam sesudah makan. Wajib dihabiskan sesuai resep dokter.",
+        "kegunaan_indikasi": "Antibiotik spektrum luas untuk mengatasi infeksi bakteri pada THT, saluran napas, kulit, dan saluran kemih.",
+        "efek_samping": "Mual, diare, ruam kulit, atau sariawan mulut akibat perubahan flora usus.",
+        "peringatan_kontradiksi": "Peringatan: Beritahu dokter jika Anda alergi penisilin. Kontraindikasi: Riwayat hipersensitivitas terhadap golongan penisilin.",
+        "merek_dagang": "Amoxsan, Kalmoxillin, Yusimox, Broadamox."
     }
 }
 
@@ -671,9 +679,11 @@ async def get_drug_info(payload: DrugInfoRequest):
         return DrugInfoResponse(
             name=match_data.get("name", payload.name.strip().title()),
             komposisi=match_data["komposisi"],
-            kegunaan=match_data["kegunaan"],
-            cara_pakai=match_data["cara_pakai"],
-            indikasi=match_data["indikasi"],
+            dosis_aturan_pakai=match_data["dosis_aturan_pakai"],
+            kegunaan_indikasi=match_data["kegunaan_indikasi"],
+            efek_samping=match_data["efek_samping"],
+            peringatan_kontradiksi=match_data["peringatan_kontradiksi"],
+            merek_dagang=match_data["merek_dagang"],
             warning=warning_msg
         )
 
@@ -682,9 +692,11 @@ async def get_drug_info(payload: DrugInfoRequest):
         return DrugInfoResponse(
             name=name_original,
             komposisi="-",
-            kegunaan="-",
-            cara_pakai="-",
-            indikasi="-",
+            dosis_aturan_pakai="-",
+            kegunaan_indikasi="-",
+            efek_samping="-",
+            peringatan_kontradiksi="-",
+            merek_dagang="-",
             warning=f"Peringatan: Obat '{name_original}' tidak ditemukan di database lokal. Harap periksa kembali ejaan Anda."
         )
 
@@ -698,9 +710,11 @@ async def get_drug_info(payload: DrugInfoRequest):
             f"Format jawaban wajib dalam bentuk JSON mentah dengan key berikut:\n"
             f"- 'name': nama resmi obat dengan ejaan yang benar dan baku (misal 'Paracetamol' jika pengguna menginput 'paracetmol').\n"
             f"- 'komposisi': zat aktif dan kandungan obatnya.\n"
-            f"- 'kegunaan': manfaat dan kegunaan spesifik obat.\n"
-            f"- 'cara_pakai': aturan pakai dan cara minum obat yang lazim.\n"
-            f"- 'indikasi': indikasi medis atau kondisi kesehatan yang diobati.\n"
+            f"- 'dosis_aturan_pakai': dosis lazim dan aturan pakai obat.\n"
+            f"- 'kegunaan_indikasi': manfaat, kegunaan, dan indikasi medis utama obat.\n"
+            f"- 'efek_samping': efek samping yang mungkin timbul saat mengonsumsi obat ini.\n"
+            f"- 'peringatan_kontradiksi': peringatan penggunaan, efek kontraindikasi, serta hal-hal yang perlu diwaspadai.\n"
+            f"- 'merek_dagang': contoh merek dagang obat ini yang beredar di Indonesia.\n"
             f"- 'warning': jika nama obat yang diinput '{payload.name}' mengandung typo atau ejaannya kurang tepat, isi dengan pesan peringatan berbahasa Indonesia (contoh: 'Peringatan: Ejaan nama obat tidak tepat. Menampilkan hasil untuk Paracetamol.'). Jika ejaan sudah benar, isi dengan null.\n"
             f"Ketentuan: Jangan berikan teks pengantar, penutup, atau tanda markdown ```json. Cukup berikan JSON object-nya saja."
         )
@@ -721,9 +735,11 @@ async def get_drug_info(payload: DrugInfoRequest):
         return DrugInfoResponse(
             name=resolved_name,
             komposisi=str(data.get("komposisi", "Informasi tidak tersedia.")),
-            kegunaan=str(data.get("kegunaan", "Informasi tidak tersedia.")),
-            cara_pakai=str(data.get("cara_pakai", "Informasi tidak tersedia.")),
-            indikasi=str(data.get("indikasi", "Informasi tidak tersedia.")),
+            dosis_aturan_pakai=str(data.get("dosis_aturan_pakai", "Informasi tidak tersedia.")),
+            kegunaan_indikasi=str(data.get("kegunaan_indikasi", "Informasi tidak tersedia.")),
+            efek_samping=str(data.get("efek_samping", "Informasi tidak tersedia.")),
+            peringatan_kontradiksi=str(data.get("peringatan_kontradiksi", "Informasi tidak tersedia.")),
+            merek_dagang=str(data.get("merek_dagang", "Informasi tidak tersedia.")),
             warning=warning_msg
         )
     except Exception as e:
@@ -731,9 +747,11 @@ async def get_drug_info(payload: DrugInfoRequest):
         return DrugInfoResponse(
             name=name_original,
             komposisi="-",
-            kegunaan="-",
-            cara_pakai="-",
-            indikasi="-",
+            dosis_aturan_pakai="-",
+            kegunaan_indikasi="-",
+            efek_samping="-",
+            peringatan_kontradiksi="-",
+            merek_dagang="-",
             warning=f"Peringatan: Gagal memproses informasi obat '{name_original}' via AI: {str(e)}"
         )
 

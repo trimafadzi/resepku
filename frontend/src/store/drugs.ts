@@ -7,18 +7,22 @@ export interface Drug {
   id: string;
   name: string;
   komposisi: string;
-  kegunaan: string;
-  cara_pakai: string;
-  indikasi: string;
+  dosis_aturan_pakai: string;
+  kegunaan_indikasi: string;
+  efek_samping: string;
+  peringatan_kontradiksi: string;
+  merek_dagang: string;
   createdAt: string;
 }
 
 export interface DrugInfoPayload {
   name?: string;
   komposisi: string;
-  kegunaan: string;
-  cara_pakai: string;
-  indikasi: string;
+  dosis_aturan_pakai: string;
+  kegunaan_indikasi: string;
+  efek_samping: string;
+  peringatan_kontradiksi: string;
+  merek_dagang: string;
   warning?: string | null;
 }
 

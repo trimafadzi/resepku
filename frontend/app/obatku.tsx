@@ -27,9 +27,11 @@ export default function ObatkuScreen() {
   // Form States
   const [name, setName] = useState("");
   const [komposisi, setKomposisi] = useState("");
-  const [kegunaan, setKegunaan] = useState("");
-  const [caraPakai, setCaraPakai] = useState("");
-  const [indikasi, setIndikasi] = useState("");
+  const [dosisAturanPakai, setDosisAturanPakai] = useState("");
+  const [kegunaanIndikasi, setKegunaanIndikasi] = useState("");
+  const [efekSamping, setEfekSamping] = useState("");
+  const [peringatanKontradiksi, setPeringatanKontradiksi] = useState("");
+  const [merekDagang, setMerekDagang] = useState("");
   const [warning, setWarning] = useState<string | null>(null);
 
   // UI States
@@ -64,9 +66,11 @@ export default function ObatkuScreen() {
     try {
       const info = await drugsStore.fetchInfo(name);
       setKomposisi(info.komposisi || "");
-      setKegunaan(info.kegunaan || "");
-      setCaraPakai(info.cara_pakai || "");
-      setIndikasi(info.indikasi || "");
+      setDosisAturanPakai(info.dosis_aturan_pakai || "");
+      setKegunaanIndikasi(info.kegunaan_indikasi || "");
+      setEfekSamping(info.efek_samping || "");
+      setPeringatanKontradiksi(info.peringatan_kontradiksi || "");
+      setMerekDagang(info.merek_dagang || "");
       setWarning(info.warning || null);
       if (info.name) {
         setName(info.name);
@@ -92,16 +96,20 @@ export default function ObatkuScreen() {
       await drugsStore.saveDrug({
         name: name.trim(),
         komposisi: komposisi.trim(),
-        kegunaan: kegunaan.trim(),
-        cara_pakai: caraPakai.trim(),
-        indikasi: indikasi.trim(),
+        dosis_aturan_pakai: dosisAturanPakai.trim(),
+        kegunaan_indikasi: kegunaanIndikasi.trim(),
+        efek_samping: efekSamping.trim(),
+        peringatan_kontradiksi: peringatanKontradiksi.trim(),
+        merek_dagang: merekDagang.trim(),
       });
       // Reset form
       setName("");
       setKomposisi("");
-      setKegunaan("");
-      setCaraPakai("");
-      setIndikasi("");
+      setDosisAturanPakai("");
+      setKegunaanIndikasi("");
+      setEfekSamping("");
+      setPeringatanKontradiksi("");
+      setMerekDagang("");
       setWarning(null);
       // Reload list
       await loadDrugs();
@@ -223,35 +231,57 @@ export default function ObatkuScreen() {
             style={[styles.multilineInput, { minHeight: 60 }]}
           />
 
-          {/* Kegunaan */}
-          <Text style={styles.fieldLabelSmall}>Kegunaan Spesifik</Text>
+          {/* Dosis / Aturan pakai */}
+          <Text style={styles.fieldLabelSmall}>Dosis / Aturan pakai</Text>
           <TextInput
-            testID="drug-use-input"
-            value={kegunaan}
-            onChangeText={setKegunaan}
-            placeholder="Manfaat utama obat..."
+            testID="drug-dosing-input"
+            value={dosisAturanPakai}
+            onChangeText={setDosisAturanPakai}
+            placeholder="Dosis lazim dan aturan pakai obat..."
             multiline
             style={[styles.multilineInput, { minHeight: 60 }]}
           />
 
-          {/* Cara Pakai */}
-          <Text style={styles.fieldLabelSmall}>Cara Minum / Pakai</Text>
+          {/* Kegunaan / indikasi */}
+          <Text style={styles.fieldLabelSmall}>Kegunaan / indikasi</Text>
           <TextInput
-            testID="drug-instruction-input"
-            value={caraPakai}
-            onChangeText={setCaraPakai}
-            placeholder="Aturan konsumsi, dosis, atau cara pakai..."
+            testID="drug-use-indication-input"
+            value={kegunaanIndikasi}
+            onChangeText={setKegunaanIndikasi}
+            placeholder="Manfaat, kegunaan, dan indikasi medis utama obat..."
             multiline
             style={[styles.multilineInput, { minHeight: 60 }]}
           />
 
-          {/* Indikasi */}
-          <Text style={styles.fieldLabelSmall}>Indikasi</Text>
+          {/* Efek samping */}
+          <Text style={styles.fieldLabelSmall}>Efek samping</Text>
           <TextInput
-            testID="drug-indication-input"
-            value={indikasi}
-            onChangeText={setIndikasi}
-            placeholder="Indikasi medis atau kondisi peruntukan obat..."
+            testID="drug-side-effect-input"
+            value={efekSamping}
+            onChangeText={setEfekSamping}
+            placeholder="Efek samping yang mungkin terjadi..."
+            multiline
+            style={[styles.multilineInput, { minHeight: 60 }]}
+          />
+
+          {/* Peringatan & Kontradiksi */}
+          <Text style={styles.fieldLabelSmall}>Peringatan & Kontradiksi</Text>
+          <TextInput
+            testID="drug-warning-contra-input"
+            value={peringatanKontradiksi}
+            onChangeText={setPeringatanKontradiksi}
+            placeholder="Peringatan penggunaan dan kontraindikasi medis..."
+            multiline
+            style={[styles.multilineInput, { minHeight: 60 }]}
+          />
+
+          {/* Merek Dagang */}
+          <Text style={styles.fieldLabelSmall}>Merek Dagang</Text>
+          <TextInput
+            testID="drug-brands-input"
+            value={merekDagang}
+            onChangeText={setMerekDagang}
+            placeholder="Contoh merek dagang di pasaran..."
             multiline
             style={[styles.multilineInput, { minHeight: 60 }]}
           />
@@ -328,31 +358,45 @@ export default function ObatkuScreen() {
                     <View style={styles.drugItemBody} testID={`drug-detail-${drug.id}`}>
                       <View style={styles.divider} />
 
-                      {drug.komposisi ? (
+                       {drug.komposisi ? (
                         <View style={styles.infoBlock}>
                           <Text style={styles.infoLabel}>Komposisi</Text>
                           <Text style={styles.infoVal}>{drug.komposisi}</Text>
                         </View>
                       ) : null}
 
-                      {drug.kegunaan ? (
+                      {drug.dosis_aturan_pakai ? (
                         <View style={styles.infoBlock}>
-                          <Text style={styles.infoLabel}>Kegunaan Spesifik</Text>
-                          <Text style={styles.infoVal}>{drug.kegunaan}</Text>
+                          <Text style={styles.infoLabel}>Dosis / Aturan pakai</Text>
+                          <Text style={styles.infoVal}>{drug.dosis_aturan_pakai}</Text>
                         </View>
                       ) : null}
 
-                      {drug.cara_pakai ? (
+                      {drug.kegunaan_indikasi ? (
                         <View style={styles.infoBlock}>
-                          <Text style={styles.infoLabel}>Cara Minum / Pakai</Text>
-                          <Text style={styles.infoVal}>{drug.cara_pakai}</Text>
+                          <Text style={styles.infoLabel}>Kegunaan / indikasi</Text>
+                          <Text style={styles.infoVal}>{drug.kegunaan_indikasi}</Text>
                         </View>
                       ) : null}
 
-                      {drug.indikasi ? (
+                      {drug.efek_samping ? (
                         <View style={styles.infoBlock}>
-                          <Text style={styles.infoLabel}>Indikasi</Text>
-                          <Text style={styles.infoVal}>{drug.indikasi}</Text>
+                          <Text style={styles.infoLabel}>Efek samping</Text>
+                          <Text style={styles.infoVal}>{drug.efek_samping}</Text>
+                        </View>
+                      ) : null}
+
+                      {drug.peringatan_kontradiksi ? (
+                        <View style={styles.infoBlock}>
+                          <Text style={styles.infoLabel}>Peringatan & Kontradiksi</Text>
+                          <Text style={styles.infoVal}>{drug.peringatan_kontradiksi}</Text>
+                        </View>
+                      ) : null}
+
+                      {drug.merek_dagang ? (
+                        <View style={styles.infoBlock}>
+                          <Text style={styles.infoLabel}>Merek Dagang</Text>
+                          <Text style={styles.infoVal}>{drug.merek_dagang}</Text>
                         </View>
                       ) : null}
                     </View>

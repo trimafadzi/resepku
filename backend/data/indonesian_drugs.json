@@ -2,106 +2,136 @@
   {
     "name": "Paracetamol",
     "komposisi": "Paracetamol (Acetaminophen) 500 mg.",
-    "kegunaan": "Meredakan demam, sakit kepala, sakit gigi, dan nyeri ringan hingga sedang.",
-    "cara_pakai": "Dewasa: 1-2 tablet, 3-4 kali sehari (maksimum 8 tablet sehari) setelah makan. Anak 6-12 tahun: 1/2-1 tablet, 3-4 kali sehari.",
-    "indikasi": "Demam, nyeri ringan hingga sedang seperti sakit kepala, sakit gigi, nyeri otot, dan nyeri haid."
+    "dosis_aturan_pakai": "Dewasa: 1-2 tablet (500mg-1000mg) 3-4 kali sehari sesudah makan. Anak 6-12 tahun: 1/2-1 tablet 3-4 kali sehari.",
+    "kegunaan_indikasi": "Meringankan demam, sakit kepala, sakit gigi, nyeri otot, dan nyeri ringan sampai sedang.",
+    "efek_samping": "Jarang terjadi. Pada dosis tinggi atau jangka panjang dapat memicu gangguan fungsi hati (hepatotoksik) atau ruam kulit.",
+    "peringatan_kontradiksi": "Peringatan: Hindari konsumsi bersama obat lain yang mengandung paracetamol. Kontraindikasi: Gangguan fungsi hati berat dan hipersensitivitas.",
+    "merek_dagang": "Sanmol, Panadol, Pamol, Biogesic, Tempra."
   },
   {
     "name": "Ibuprofen",
     "komposisi": "Ibuprofen 200 mg atau 400 mg.",
-    "kegunaan": "Mengurangi rasa sakit, pembengkakan, dan peradangan (sakit gigi, nyeri sendi, nyeri haid).",
-    "cara_pakai": "Dewasa: 200-400 mg, 3-4 kali sehari setelah makan. Wajib diminum sesudah makan untuk mencegah iritasi lambung.",
-    "indikasi": "Nyeri ringan sampai sedang pada sakit gigi, sakit kepala, nyeri otot, nyeri haid, dan radang sendi (arthritis)."
+    "dosis_aturan_pakai": "Dewasa: 200-400 mg, 3-4 kali sehari sesudah makan (maksimal 1200 mg per hari). Diminum setelah makan.",
+    "kegunaan_indikasi": "Meredakan nyeri ringan-sedang (sakit gigi, sakit kepala, nyeri haid) dan meredakan peradangan/pembengkakan sendi.",
+    "efek_samping": "Gangguan pencernaan (mual, perut kembung, diare, nyeri lambung), sakit kepala, atau pusing.",
+    "peringatan_kontradiksi": "Peringatan: Hati-hati pada penderita tukak lambung, penyakit jantung, ginjal, atau asma. Kontraindikasi: Tukak lambung aktif, kehamilan trimester akhir.",
+    "merek_dagang": "Proris, Bufect, Farsifen, Fenris."
   },
   {
     "name": "Amoxicillin",
     "komposisi": "Amoxicillin Trihydrate 500 mg.",
-    "kegunaan": "Antibiotik untuk mengobati infeksi bakteri pada saluran pernapasan, kulit, infeksi THT, dan saluran kemih.",
-    "cara_pakai": "Dewasa: 250-500 mg setiap 8 jam sesudah makan. Harus dihabiskan sesuai resep dokter meskipun gejala sudah hilang.",
-    "indikasi": "Infeksi bakteri gram-positif dan gram-negatif seperti tonsilitis, sinusitis, otitis media, bronkitis, dan infeksi saluran kemih."
+    "dosis_aturan_pakai": "Dewasa: 250-500 mg setiap 8 jam sesudah makan. Wajib dihabiskan sesuai resep dokter.",
+    "kegunaan_indikasi": "Antibiotik spektrum luas untuk mengatasi infeksi bakteri pada THT, saluran napas, kulit, dan saluran kemih.",
+    "efek_samping": "Mual, diare, ruam kulit, atau sariawan mulut akibat perubahan flora usus.",
+    "peringatan_kontradiksi": "Peringatan: Beritahu dokter jika Anda alergi penisilin. Kontraindikasi: Riwayat hipersensitivitas terhadap golongan penisilin.",
+    "merek_dagang": "Amoxsan, Kalmoxillin, Yusimox, Broadamox."
   },
   {
     "name": "Asam Mefenamat",
     "komposisi": "Asam Mefenamat (Mefenamic Acid) 500 mg.",
-    "kegunaan": "Meredakan nyeri akut tingkat ringan hingga sedang, terutama sakit gigi, nyeri pasca-operasi, dan nyeri haid.",
-    "cara_pakai": "Dewasa: Dosis awal 500 mg, dilanjutkan 250-500 mg setiap 6 jam sesudah makan. Jangan digunakan lebih dari 7 hari.",
-    "indikasi": "Nyeri ringan hingga sedang, sakit gigi berat, sakit kepala, nyeri haid (dismenore primer), dan nyeri traumatis."
+    "dosis_aturan_pakai": "Dewasa: Dosis awal 500 mg, dilanjutkan 250-500 mg setiap 6 jam sesudah makan. Maksimal penggunaan 7 hari.",
+    "kegunaan_indikasi": "Meredakan nyeri akut tingkat ringan hingga sedang seperti sakit gigi, nyeri haid (dismenore), dan nyeri pasca-operasi.",
+    "efek_samping": "Gangguan pencernaan (diare, mual, konstipasi, sakit maag), kantuk, atau pusing.",
+    "peringatan_kontradiksi": "Peringatan: Risiko perdarahan lambung jika digunakan jangka panjang. Kontraindikasi: Pasien dengan tukak lambung aktif, gangguan ginjal berat, penyakit radang usus.",
+    "merek_dagang": "Ponstan, Mefinal, Opistan, Asmef."
   },
   {
     "name": "Cetirizine",
     "komposisi": "Cetirizine Dihydrochloride 10 mg.",
-    "kegunaan": "Mengatasi gejala alergi seperti bersin-bersin, hidung gatal/tersumbat, mata berair, dan gatal kulit (biduran).",
-    "cara_pakai": "Dewasa dan anak >12 tahun: 1 tablet (10 mg) sekali sehari, diminum sebelum atau sesudah makan pada malam hari.",
-    "indikasi": "Rinitis alergi musiman, rinitis alergi menahun (perennial), dan urtikaria (gatal-gatal biduran) kronis."
+    "dosis_aturan_pakai": "Dewasa dan anak >12 tahun: 1 tablet (10 mg) sekali sehari, diminum sebelum atau sesudah makan pada malam hari.",
+    "kegunaan_indikasi": "Mengatasi gejala alergi seperti rinitis alergi (bersin-bersin, hidung gatal/tersumbat) dan urtikaria kronis (gatal biduran).",
+    "efek_samping": "Kantuk ringan, mulut kering, lelah, sakit kepala, atau pusing.",
+    "peringatan_kontradiksi": "Peringatan: Hindari mengemudi jika mengantuk. Batasi konsumsi alkohol. Kontraindikasi: Ibu menyusui, penderita gangguan ginjal berat.",
+    "merek_dagang": "Incidal-OD, Ryvel, Cerini, Ozen, Cetinal."
   },
   {
     "name": "Antasida",
     "komposisi": "Alumunium Hidroksida 200 mg, Magnesium Hidroksida 200 mg, Simetikon 20 mg.",
-    "kegunaan": "Meredakan gejala sakit maag, asam lambung berlebih, kembung, dan nyeri ulu hati.",
-    "cara_pakai": "Dewasa: 1-2 tablet kunyah, 3-4 kali sehari. Anak 6-12 tahun: 1/2-1 tablet, 3-4 kali sehari. Diminum 1 jam sebelum makan atau 2 jam setelah makan, kunyah tablet hingga halus.",
-    "indikasi": "Hiperasiditas lambung, gastritis, tukak lambung, kembung, dan nyeri ulu hati akibat gas berlebih."
+    "dosis_aturan_pakai": "Dewasa: 1-2 tablet dikunyah hingga halus, 3-4 kali sehari sebelum makan atau saat perut kosong (1 jam sebelum atau 2 jam setelah makan).",
+    "kegunaan_indikasi": "Meredakan gejala hiperasiditas lambung, gastritis, tukak lambung, perut kembung, dan nyeri ulu hati.",
+    "efek_samping": "Sembelit (konstipasi), diare, atau mual.",
+    "peringatan_kontradiksi": "Peringatan: Jangan digunakan terus-menerus selama lebih dari 2 minggu tanpa resep. Kontraindikasi: Gangguan fungsi ginjal berat (risiko hipermagnesemia).",
+    "merek_dagang": "Promag, Mylanta, Plantacid, Polysilane, Antasida Doen."
   },
   {
     "name": "Metformin",
     "komposisi": "Metformin HCl 500 mg atau 850 mg.",
-    "kegunaan": "Menurunkan kadar gula darah pada pasien diabetes melitus tipe 2.",
-    "cara_pakai": "Dosis awal: 500 mg, 1-2 kali sehari saat makan atau segera setelah makan untuk mengurangi efek samping pencernaan.",
-    "indikasi": "Diabetes melitus tipe 2 (NIDDM), terutama pada pasien dengan berat badan berlebih di mana diet dan olahraga gagal mengontrol gula darah."
+    "dosis_aturan_pakai": "Dosis awal: 500 mg, 1-2 kali sehari saat atau segera setelah makan untuk mengurangi efek samping pada pencernaan.",
+    "kegunaan_indikasi": "Menurunkan kadar gula darah pada pasien diabetes melitus tipe 2 (NIDDM).",
+    "efek_samping": "Mual, muntah, perut kembung, diare, kehilangan nafsu makan, atau rasa logam di mulut.",
+    "peringatan_kontradiksi": "Peringatan: Risiko asidosis laktat pada pasien gangguan ginjal atau konsumsi alkohol tinggi. Kontraindikasi: Gangguan fungsi ginjal berat, asidosis metabolik akut.",
+    "merek_dagang": "Glucophage, Metformin Doen, Glumin, Eraphage."
   },
   {
     "name": "Omeprazole",
     "komposisi": "Omeprazole 20 mg.",
-    "kegunaan": "Mengurangi produksi asam lambung berlebih pada penderita maag kronis, GERD, dan tukak lambung.",
-    "cara_pakai": "Dewasa: 20 mg sekali sehari, diminum pagi hari sebelum makan (saat perut kosong). Telan kapsul secara utuh.",
-    "indikasi": "Gastroesophageal Reflux Disease (GERD), tukak lambung, tukak duodenum, dan sindrom Zollinger-Ellison."
+    "dosis_aturan_pakai": "Dewasa: 20 mg sekali sehari sebelum makan pagi (saat perut kosong). Telan utuh kapsul, jangan dikunyah.",
+    "kegunaan_indikasi": "Mengurangi produksi asam lambung berlebih pada penderita GERD, tukak lambung, tukak duodenum, dan esofagitis erosif.",
+    "efek_samping": "Sakit kepala, diare, sakit perut, mual, muntah, sembelit, atau perut kembung.",
+    "peringatan_kontradiksi": "Peringatan: Penggunaan jangka panjang dapat menurunkan penyerapan vitamin B12. Kontraindikasi: Hipersensitivitas terhadap omeprazole atau golongan PPI lainnya.",
+    "merek_dagang": "Prilosec, Pumpitor, Lokev, Socid, Ozid."
   },
   {
     "name": "Loperamide",
     "komposisi": "Loperamide HCl 2 mg.",
-    "kegunaan": "Menghentikan diare akut non-spesifik dengan memperlambat gerakan usus.",
-    "cara_pakai": "Dewasa: Dosis awal 4 mg (2 tablet), diikuti 2 mg (1 tablet) setiap setelah buang air besar cair. Maksimal 16 mg per hari.",
-    "indikasi": "Diare akut non-spesifik, diare kronis terkait penyakit radang usus."
+    "dosis_aturan_pakai": "Dewasa diare akut: Awal 4 mg (2 tablet), diikuti 2 mg (1 tablet) setiap habis buang air besar cair. Maksimal 16 mg per hari.",
+    "kegunaan_indikasi": "Menghentikan diare akut non-spesifik dengan memperlambat peristaltik (gerakan) usus.",
+    "efek_samping": "Sembelit, perut kembung, pusing, mual, atau mulut kering.",
+    "peringatan_kontradiksi": "Peringatan: Jangan digunakan jika diare disebabkan oleh infeksi bakteri (disentri, tinja berdarah). Kontraindikasi: Kolitis ulseratif akut, anak usia <2 tahun.",
+    "merek_dagang": "Imodium, Lodia, Renamid, Lopamid."
   },
   {
     "name": "Dexamethasone",
     "komposisi": "Dexamethasone 0.5 mg atau 0.75 mg.",
-    "kegunaan": "Obat anti-inflamasi kortikosteroid untuk meredakan radang tenggorokan, alergi berat, peradangan sendi, dan asma.",
-    "cara_pakai": "Dewasa: Dosis awal 0.5 mg - 9 mg per hari dibagi dalam beberapa dosis sesudah makan, disesuaikan dengan tingkat keparahan penyakit.",
-    "indikasi": "Kondisi alergi berat, penyakit kolagen, penyakit kulit radang, asma bronkial, dan terapi supresif radang lainnya."
+    "dosis_aturan_pakai": "Dewasa: Dosis awal 0.5 mg - 9 mg per hari dibagi dalam beberapa dosis sesudah makan, disesuaikan keparahan penyakit.",
+    "kegunaan_indikasi": "Kortikosteroid anti-inflamasi untuk mengatasi kondisi alergi berat, peradangan hebat (rematik, penyakit kolagen), dan syok.",
+    "efek_samping": "Meningkatnya nafsu makan, insomnia, retensi cairan (sembap), kenaikan gula darah, osteoporosis pada penggunaan kronis.",
+    "peringatan_kontradiksi": "Peringatan: Jangan dihentikan mendadak setelah pemakaian lama (tapering off). Kontraindikasi: Infeksi jamur sistemik, hipersensitivitas.",
+    "merek_dagang": "Kalmethasone, Lanadexon, Indexon, Dextem."
   },
   {
     "name": "Salbutamol",
     "komposisi": "Salbutamol Sulfate 2 mg atau 4 mg.",
-    "kegunaan": "Melegakan saluran pernapasan yang menyempit pada penderita asma atau PPOK (bronkodilator).",
-    "cara_pakai": "Dewasa: 2-4 mg, 3-4 kali sehari sebelum atau setelah makan. Anak 6-12 tahun: 2 mg, 3-4 kali sehari.",
-    "indikasi": "Pencegahan dan penanganan bronkospasme pada asma bronkial, bronkitis kronis, dan emfisema."
+    "dosis_aturan_pakai": "Dewasa: 2-4 mg, 3-4 kali sehari sesudah makan. Anak 6-12 tahun: 2 mg, 3-4 kali sehari.",
+    "kegunaan_indikasi": "Bronkodilator untuk mencegah dan meredakan penyempitan saluran napas (bronkospasme) pada penderita asma atau PPOK.",
+    "efek_samping": "Tangan gemetar (tremor), jantung berdebar (palpitasi), sakit kepala, atau kram otot.",
+    "peringatan_kontradiksi": "Peringatan: Hati-hati pada penderita hipertensi, penyakit jantung koroner, atau hipertiroidisme. Kontraindikasi: Ancaman abortus (keguguran) pada kehamilan.",
+    "merek_dagang": "Ventolin, Lasal, Astharol, Salbron."
   },
   {
     "name": "Acyclovir",
     "komposisi": "Acyclovir 200 mg atau 400 mg.",
-    "kegunaan": "Antivirus untuk mengobati infeksi virus herpes (herpes zoster, herpes simpleks, cacar air).",
-    "cara_pakai": "Dewasa untuk Herpes Simpleks: 200 mg, 5 kali sehari setiap 4 jam (tanpa dosis malam) selama 5 hari. Harus dihabiskan.",
-    "indikasi": "Infeksi virus Herpes Simplex pada kulit dan selaput lendir, pencegahan herpes simpleks rekuren, dan Herpes Zoster."
+    "dosis_aturan_pakai": "Herpes Simpleks Dewasa: 200 mg, 5 kali sehari setiap 4 jam (tanpa dosis malam) selama 5 hari. Harus dihabiskan.",
+    "kegunaan_indikasi": "Antivirus untuk mengobati infeksi akibat virus herpes (herpes zoster, herpes simpleks, cacar air).",
+    "efek_samping": "Sakit kepala, pusing, mual, muntah, diare, lelah, atau demam.",
+    "peringatan_kontradiksi": "Peringatan: Minum air putih yang cukup selama terapi untuk mencegah kristalisasi di ginjal. Kontraindikasi: Hipersensitivitas terhadap acyclovir.",
+    "merek_dagang": "Clinovir, Temiral, Zovirax, Acerpes."
   },
   {
     "name": "Loratadine",
     "komposisi": "Loratadine 10 mg.",
-    "kegunaan": "Antihistamin non-sedatif untuk meredakan gejala alergi (bersin, gatal, ruam kulit) tanpa menyebabkan kantuk.",
-    "cara_pakai": "Dewasa dan anak >12 tahun: 1 tablet (10 mg) sekali sehari sebelum atau sesudah makan.",
-    "indikasi": "Rinitis alergi, urtikaria kronis, dan dermatosis alergi lainnya."
+    "dosis_aturan_pakai": "Dewasa dan anak >12 tahun: 1 tablet (10 mg) sekali sehari sebelum atau sesudah makan.",
+    "kegunaan_indikasi": "Antihistamin non-sedatif untuk meredakan gejala rinitis alergi dan urtikaria (gatal biduran) tanpa efek kantuk berat.",
+    "efek_samping": "Sakit kepala, mulut kering, lelah, mengantuk ringan (jarang).",
+    "peringatan_kontradiksi": "Peringatan: Hati-hati pada pasien dengan gangguan hati atau ginjal berat. Kontraindikasi: Hipersensitivitas terhadap loratadine.",
+    "merek_dagang": "Claritin, Clarihis, Crony, Alloris."
   },
   {
     "name": "Captopril",
     "komposisi": "Captopril 12.5 mg, 25 mg, atau 50 mg.",
-    "kegunaan": "Menurunkan tekanan darah tinggi (hipertensi) dan membantu pemulihan pasca-gagal jantung.",
-    "cara_pakai": "Dosis awal: 12.5 - 25 mg, 2-3 kali sehari. Diminum 1 jam sebelum makan (saat perut kosong) untuk penyerapan optimal.",
-    "indikasi": "Hipertensi ringan sampai berat, gagal jantung kongestif (terapi tambahan), dan nefropati diabetik."
+    "dosis_aturan_pakai": "Dosis awal: 12.5 - 25 mg, 2-3 kali sehari, diminum 1 jam sebelum makan (saat perut kosong) untuk penyerapan optimal.",
+    "kegunaan_indikasi": "Menurunkan tekanan darah tinggi pada hipertensi, terapi gagal jantung, dan nefropati diabetik.",
+    "efek_samping": "Batuk kering yang mengganggu, pusing, gangguan indra pengecap, hipotensi, ruam kulit.",
+    "peringatan_kontradiksi": "Peringatan: Monitor kadar kalium darah secara berkala. Kontraindikasi: Kehamilan trimester 2 dan 3, riwayat angioedema.",
+    "merek_dagang": "Capoten, Casipril, Captopril Doen, Tenpril."
   },
   {
     "name": "Domperidone",
-    "komposisi": "Domperidone Maleate 10 mg.",
-    "kegunaan": "Meredakan mual dan muntah akut, serta mengatasi perut kembung atau rasa tidak nyaman pasca-makan.",
-    "cara_pakai": "Dewasa: 10 mg (1 tablet), 3 kali sehari. Diminum 15-30 menit sebelum makan dan sebelum tidur malam.",
-    "indikasi": "Mual dan muntah akut akibat berbagai sebab, dispepsia fungsional (perut kembung, nyeri ulu hati)."
+    "komposisi": "Domperidone 10 mg.",
+    "dosis_aturan_pakai": "Dewasa: 10 mg (1 tablet) 3 kali sehari, diminum 15-30 menit sebelum makan dan sebelum tidur.",
+    "kegunaan_indikasi": "Meredakan mual dan muntah akut, serta mengatasi perut kembung, rasa begah, atau nyeri ulu hati pasca-makan.",
+    "efek_samping": "Mulut kering, sakit kepala, diare, mengantuk ringan.",
+    "peringatan_kontradiksi": "Peringatan: Batasi durasi pengobatan maksimal 1 minggu karena efek ke jantung. Kontraindikasi: Perdarahan gastrointestinal, obstruksi usus, tumor prolaktinoma.",
+    "merek_dagang": "Vometa, Vesperum, Dom, Costil."
   }
 ]

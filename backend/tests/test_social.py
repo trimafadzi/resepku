@@ -281,9 +281,11 @@ class TestNewFeatures:
         assert data["name"] == "Paracetamol"
         assert "komposisi" in data
         assert "Paracetamol" in data["komposisi"]
-        assert "demam" in data["kegunaan"]
-        assert "cara_pakai" in data
-        assert "indikasi" in data
+        assert "dosis_aturan_pakai" in data
+        assert "kegunaan_indikasi" in data
+        assert "efek_samping" in data
+        assert "peringatan_kontradiksi" in data
+        assert "merek_dagang" in data
 
     def test_drug_info_fallback(self, base_url, api_client):
         r = api_client.post(f"{base_url}/api/drugs/info", json={"name": "ObatAnehLangka"})
@@ -291,6 +293,11 @@ class TestNewFeatures:
         data = r.json()
         assert data["name"] == "ObatAnehLangka"
         assert data["komposisi"] == "-"
+        assert data["dosis_aturan_pakai"] == "-"
+        assert data["kegunaan_indikasi"] == "-"
+        assert data["efek_samping"] == "-"
+        assert data["peringatan_kontradiksi"] == "-"
+        assert data["merek_dagang"] == "-"
         assert "warning" in data
         assert "ObatAnehLangka" in data["warning"]
 
