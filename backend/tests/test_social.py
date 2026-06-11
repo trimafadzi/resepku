@@ -273,3 +273,24 @@ class TestNewFeatures:
         assert "caption" in data
         assert "Soto Ayam" in data["caption"]
         assert len(data["caption"]) <= 280
+
+    def test_drug_info_mock(self, base_url, api_client):
+        r = api_client.post(f"{base_url}/api/drugs/info", json={"name": "Paracetamol"})
+        assert r.status_code == 200
+        data = r.json()
+        assert "komposisi" in data
+        assert "Paracetamol" in data["komposisi"]
+        assert "demam" in data["kegunaan"]
+        assert "cara_pakai" in data
+        assert "indikasi" in data
+
+    def test_drug_info_fallback(self, base_url, api_client):
+        r = api_client.post(f"{base_url}/api/drugs/info", json={"name": "ObatAnehLangka"})
+        assert r.status_code == 200
+        data = r.json()
+        assert "komposisi" in data
+        assert "ObatAnehLangka" in data["komposisi"]
+        assert "kegunaan" in data
+        assert "cara_pakai" in data
+        assert "indikasi" in data
+        assert "GEMINI_API_KEY" in data["indikasi"]

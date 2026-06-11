@@ -576,6 +576,109 @@ async def generate_caption(payload: GenerateCaptionRequest):
         return {"caption": caption[:280]}
 
 
+class DrugInfoRequest(BaseModel):
+    name: str
+    apiKey: Optional[str] = None
+    aiModel: Optional[str] = None
+
+
+class DrugInfoResponse(BaseModel):
+    komposisi: str
+    kegunaan: str
+    cara_pakai: str
+    indikasi: str
+
+
+MOCK_DRUG_DATABASE = {
+    "paracetamol": {
+        "komposisi": "Paracetamol 500 mg per tablet.",
+        "kegunaan": "Meredakan demam, sakit kepala, sakit gigi, dan nyeri ringan hingga sedang.",
+        "cara_pakai": "Dewasa: 1-2 tablet, 3-4 kali sehari setelah makan. Anak-anak: Sesuai petunjuk dokter.",
+        "indikasi": "Nyeri ringan sampai sedang, demam."
+    },
+    "ibuprofen": {
+        "komposisi": "Ibuprofen 200 mg atau 400 mg per tablet.",
+        "kegunaan": "Meredakan nyeri, bengkak, peradangan, serta demam (terutama nyeri sendi, sakit gigi, nyeri haid).",
+        "cara_pakai": "Dewasa: 200-400 mg, 3-4 kali sehari setelah makan. Tidak boleh diminum saat perut kosong.",
+        "indikasi": "Nyeri inflamasi, sakit kepala, sakit gigi, demam."
+    },
+    "amoxicillin": {
+        "komposisi": "Amoxicillin Trihydrate 500 mg per tablet.",
+        "kegunaan": "Antibiotik untuk mengobati berbagai jenis infeksi bakteri (infeksi saluran pernapasan, kulit, THT, saluran kemih).",
+        "cara_pakai": "Dewasa: 250-500 mg setiap 8 jam. Wajib dihabiskan sesuai resep dokter meskipun gejala sudah mereda.",
+        "indikasi": "Infeksi bakteri sensitif."
+    }
+}
+
+
+@api_router.post("/drugs/info", response_model=DrugInfoResponse)
+async def get_drug_info(payload: DrugInfoRequest):
+    name_clean = payload.name.strip().lower()
+    if not name_clean:
+        raise HTTPException(status_code=400, detail="Nama obat tidak boleh kosong.")
+
+    api_key = (payload.apiKey or os.environ.get("GEMINI_API_KEY", "")).strip()
+    model_name = (payload.aiModel or "gemini-2.5-flash").strip()
+
+    # Cek di database tiruan lokal dulu sebagai fallback
+    if name_clean in MOCK_DRUG_DATABASE:
+        data = MOCK_DRUG_DATABASE[name_clean]
+        return DrugInfoResponse(
+            komposisi=data["komposisi"],
+            kegunaan=data["kegunaan"],
+            cara_pakai=data["cara_pakai"],
+            indikasi=data["indikasi"]
+        )
+
+    if not api_key:
+        name_original = payload.name.strip()
+        return DrugInfoResponse(
+            komposisi=f"{name_original} zat aktif tunggal.",
+            kegunaan=f"Digunakan sebagai terapi penunjang atau pengobatan gejala terkait {name_original}.",
+            cara_pakai="Diminum sesuai petunjuk dokter atau petunjuk pada kemasan produk obat.",
+            indikasi=f"Silakan konfigurasikan GEMINI_API_KEY di Pengaturan untuk mendapatkan detail informasi medis {name_original} secara akurat dari internet."
+        )
+
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel(model_name)
+        
+        prompt = (
+            f"Berikan informasi medis resmi dalam Bahasa Indonesia untuk obat dengan nama: '{payload.name}'. "
+            f"Format jawaban wajib dalam bentuk JSON mentah dengan key berikut:\n"
+            f"- 'komposisi': zat aktif dan kandungan obatnya.\n"
+            f"- 'kegunaan': manfaat dan kegunaan spesifik obat.\n"
+            f"- 'cara_pakai': aturan pakai dan cara minum obat yang lazim.\n"
+            f"- 'indikasi': indikasi medis atau kondisi kesehatan yang diobati.\n"
+            f"Ketentuan: Jangan berikan teks pengantar, penutup, atau tanda markdown ```json. Cukup berikan JSON object-nya saja."
+        )
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        
+        # Bersihkan pembungkus markdown ```json jika model mengabaikan instruksi prompt
+        if "```" in text:
+            lines = text.split("\n")
+            cleaned_lines = [l for l in lines if not (l.strip().startswith("```") or l.strip().endswith("```"))]
+            text = "\n".join(cleaned_lines).strip()
+            
+        data = json.loads(text)
+        return DrugInfoResponse(
+            komposisi=str(data.get("komposisi", "Informasi tidak tersedia.")),
+            kegunaan=str(data.get("kegunaan", "Informasi tidak tersedia.")),
+            cara_pakai=str(data.get("cara_pakai", "Informasi tidak tersedia.")),
+            indikasi=str(data.get("indikasi", "Informasi tidak tersedia."))
+        )
+    except Exception as e:
+        name_original = payload.name.strip()
+        return DrugInfoResponse(
+            komposisi=f"{name_original} zat aktif tunggal.",
+            kegunaan=f"Terapi gejala penyakit terkait {name_original}.",
+            cara_pakai="Gunakan sesuai aturan pakai pada kemasan obat.",
+            indikasi=f"Gagal memproses AI: {str(e)}"
+        )
+
+
 @api_router.get("/mock-recipe-html", response_class=HTMLResponse)
 async def get_mock_recipe_html():
     html_content = """<!doctype html>
