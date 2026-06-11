@@ -36,6 +36,7 @@ export default function RootLayout() {
         >
           <Stack.Screen name="index" />
           <Stack.Screen name="sosmed" options={{ animation: "fade" }} />
+          <Stack.Screen name="settings" options={{ animation: "fade" }} />
           <Stack.Screen
             name="sosmed/onboarding"
             options={{ presentation: "modal", animation: "slide_from_bottom" }}

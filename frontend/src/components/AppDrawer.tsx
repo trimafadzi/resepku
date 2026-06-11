@@ -15,7 +15,7 @@ import { colors, fonts, radius, spacing } from "@/src/theme";
 const { width: SCREEN_W } = Dimensions.get("window");
 const DRAWER_W = Math.min(SCREEN_W * 0.78, 320);
 
-type NavKey = "resep" | "sosmed";
+type NavKey = "resep" | "sosmed" | "settings";
 
 interface Props {
   open: boolean;
@@ -26,6 +26,7 @@ interface Props {
 const ITEMS: { key: NavKey; label: string; icon: keyof typeof Feather.glyphMap; route: string }[] = [
   { key: "resep", label: "Resep", icon: "book-open", route: "/" },
   { key: "sosmed", label: "Sosmed", icon: "share-2", route: "/sosmed" },
+  { key: "settings", label: "Pengaturan", icon: "settings", route: "/settings" },
 ];
 
 export default function AppDrawer({ open, onClose, active }: Props) {

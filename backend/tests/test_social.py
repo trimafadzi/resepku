@@ -256,3 +256,20 @@ class TestNewFeatures:
         assert "caption" in data
         assert "Nasi Goreng" in data["caption"]
         assert len(data["caption"]) <= 280
+
+    def test_generate_caption_with_custom_payload(self, base_url, api_client):
+        payload = {
+            "title": "Soto Ayam",
+            "category": "Makan Siang",
+            "ingredients": ["Ayam", "Soun", "Kool"],
+            "apiKey": "MOCK_KEY_FOR_TESTING",
+            "aiModel": "gemini-2.5-pro"
+        }
+        # Karena mock key invalid, backend akan fallback ke random template, tetapi skema payload
+        # harus tervalidasi dengan sukses (HTTP 200) tanpa error Pydantic.
+        r = api_client.post(f"{base_url}/api/social/generate-caption", json=payload)
+        assert r.status_code == 200
+        data = r.json()
+        assert "caption" in data
+        assert "Soto Ayam" in data["caption"]
+        assert len(data["caption"]) <= 280

@@ -1,4 +1,4 @@
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? "";
+import { settingsStore } from "./settings";
 
 export interface SocialUser {
   id: string;
@@ -34,7 +34,8 @@ export interface ProfileStats {
 }
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BACKEND_URL}${path}`, {
+  const baseUrl = await settingsStore.getBaseUrl();
+  const res = await fetch(`${baseUrl}${path}`, {
     headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
     ...init,
   });
@@ -78,9 +79,16 @@ export const social = {
       method: "POST",
       body: JSON.stringify({ images }),
     }),
-  generateCaption: (recipe: { title: string; category: string; ingredients: string[] }) =>
-    call<{ caption: string }>("/api/social/generate-caption", {
+  generateCaption: async (recipe: { title: string; category: string; ingredients: string[] }) => {
+    const apiKey = await settingsStore.getApiKey();
+    const aiModel = await settingsStore.getAiModel();
+    return call<{ caption: string }>("/api/social/generate-caption", {
       method: "POST",
-      body: JSON.stringify(recipe),
-    }),
+      body: JSON.stringify({
+        ...recipe,
+        apiKey: apiKey || undefined,
+        aiModel: aiModel || undefined,
+      }),
+    });
+  },
 };

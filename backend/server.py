@@ -467,6 +467,8 @@ class GenerateCaptionRequest(BaseModel):
     title: str
     category: str
     ingredients: List[str]
+    apiKey: Optional[str] = None
+    aiModel: Optional[str] = None
 
 
 @api_router.post("/social/collage")
@@ -535,7 +537,9 @@ async def generate_caption(payload: GenerateCaptionRequest):
     if len(payload.ingredients) > 5:
         ingredients_str += f", dan {len(payload.ingredients) - 5} bahan lainnya"
 
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    api_key = (payload.apiKey or os.environ.get("GEMINI_API_KEY", "")).strip()
+    model_name = (payload.aiModel or "gemini-2.5-flash").strip()
+
     if not api_key:
         import random
         tpl = random.choice(CAPTION_TEMPLATES)
@@ -549,7 +553,7 @@ async def generate_caption(payload: GenerateCaptionRequest):
     try:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel(model_name)
         prompt = (
             f"Buatlah caption postingan media sosial masakan dalam Bahasa Indonesia yang kreatif, santai, dan menarik. "
             f"Info makanan - Judul: {payload.title}, Kategori: {payload.category}, Bahan utama: {ingredients_str}. "
