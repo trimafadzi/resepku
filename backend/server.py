@@ -637,7 +637,7 @@ async def get_drug_info(payload: DrugInfoRequest):
                 if not match_data:
                     import difflib
                     drug_names = [d["name"] for d in local_drugs]
-                    close_matches = difflib.get_close_matches(payload.name.strip(), drug_names, n=1, cutoff=0.55)
+                    close_matches = difflib.get_close_matches(payload.name.strip(), drug_names, n=1, cutoff=0.8)
                     if close_matches:
                         matched_name = close_matches[0]
                         for drug in local_drugs:
