@@ -6,6 +6,8 @@ import os
 import re
 import json
 import logging
+import base64
+import io
 from pathlib import Path
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
@@ -13,6 +15,7 @@ from typing import List, Optional
 import uuid
 import requests
 from bs4 import BeautifulSoup
+from PIL import Image
 
 
 ROOT_DIR = Path(__file__).parent
@@ -452,6 +455,120 @@ async def check_follow(followerId: str = Query(...), followedId: str = Query(...
         {"_id": 0},
     )
     return {"following": existing is not None}
+
+
+# ---------- COLLAGE & CAPTION (NEW) ----------
+
+class CollageRequest(BaseModel):
+    images: List[str]
+
+
+class GenerateCaptionRequest(BaseModel):
+    title: str
+    category: str
+    ingredients: List[str]
+
+
+@api_router.post("/social/collage")
+async def create_collage(payload: CollageRequest):
+    if not payload.images:
+        raise HTTPException(status_code=400, detail="Daftar gambar tidak boleh kosong.")
+    
+    pil_images = []
+    for img_b64 in payload.images:
+        if "," in img_b64:
+            img_b64 = img_b64.split(",")[1]
+        try:
+            img_data = base64.b64decode(img_b64)
+            img = Image.open(io.BytesIO(img_data))
+            pil_images.append(img)
+        except Exception as e:
+            continue
+            
+    if not pil_images:
+        raise HTTPException(status_code=400, detail="Tidak ada gambar valid yang berhasil diurai.")
+        
+    if len(pil_images) == 1:
+        # Single image fallback
+        buffered = io.BytesIO()
+        pil_images[0].convert("RGB").save(buffered, format="JPEG")
+        b64_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        return {"image": f"data:image/jpeg;base64,{b64_str}"}
+
+    target_size = 400
+    resized = []
+    for img in pil_images:
+        resized.append(img.convert("RGB").resize((target_size, target_size), Image.Resampling.LANCZOS))
+
+    if len(resized) == 2:
+        # Horizontal collage (800x400)
+        collage = Image.new("RGB", (target_size * 2, target_size), "#F4EFE6")
+        collage.paste(resized[0], (0, 0))
+        collage.paste(resized[1], (target_size, 0))
+    else:
+        # 2x2 grid (800x800)
+        collage = Image.new("RGB", (target_size * 2, target_size * 2), "#F4EFE6")
+        collage.paste(resized[0], (0, 0))
+        collage.paste(resized[1], (target_size, 0))
+        collage.paste(resized[2], (0, target_size))
+        if len(resized) >= 4:
+            collage.paste(resized[3], (target_size, target_size))
+
+    buffered = io.BytesIO()
+    collage.save(buffered, format="JPEG", quality=85)
+    b64_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    return {"image": f"data:image/jpeg;base64,{b64_str}"}
+
+
+CAPTION_TEMPLATES = [
+    "Wah, hari ini sukses bikin {title}! Kategori {category} yang pas banget di lidah. Bahannya simpel aja: {ingredients}. Siapa yang mau coba bikin juga? 🤤👩‍🍳 #MasakHariIni #RecipeVault",
+    "Menu {category} kali ini: {title}. Rasanya bener-bener juara dan bikin nagih! ✨ Gampang banget dibuat dengan bahan: {ingredients}. Cobain yuk di dapur kalian! 🍳🥘 #DapurLokal",
+    "Gak perlu ribet buat makan enak! Cobain resep {title} ini untuk hidangan {category} spesial Anda. Cukup siapkan {ingredients}. Selamat mencoba! 💕🍲",
+    "Masak {title} buat keluarga tercinta hari ini. Hasilnya wangi banget dan rasanya dapet banget! Cocok buat ide menu {category}. Bahannya: {ingredients}. Happy cooking! 🥰✨",
+    "Lagi pengen {category} yang beda? Bikin {title} aja! Kombinasi bahan {ingredients} bener-bener menyatu sempurna. Yuk, simpan resepnya dan langsung praktek! 👩‍🍳🥗"
+]
+
+
+@api_router.post("/social/generate-caption")
+async def generate_caption(payload: GenerateCaptionRequest):
+    ingredients_str = ", ".join(payload.ingredients[:5])
+    if len(payload.ingredients) > 5:
+        ingredients_str += f", dan {len(payload.ingredients) - 5} bahan lainnya"
+
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        import random
+        tpl = random.choice(CAPTION_TEMPLATES)
+        caption = tpl.format(
+            title=payload.title,
+            category=payload.category,
+            ingredients=ingredients_str
+        )
+        return {"caption": caption[:280]}
+
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        prompt = (
+            f"Buatlah caption postingan media sosial masakan dalam Bahasa Indonesia yang kreatif, santai, dan menarik. "
+            f"Info makanan - Judul: {payload.title}, Kategori: {payload.category}, Bahan utama: {ingredients_str}. "
+            f"Ketentuan: Panjang caption wajib di bawah 280 karakter, sertakan emoji makanan yang relevan, dan gaya bahasa ala food blogger lokal Indonesia yang ramah."
+        )
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        if text.startswith('"') and text.endswith('"'):
+            text = text[1:-1].strip()
+        return {"caption": text[:280]}
+    except Exception as e:
+        import random
+        tpl = random.choice(CAPTION_TEMPLATES)
+        caption = tpl.format(
+            title=payload.title,
+            category=payload.category,
+            ingredients=ingredients_str
+        )
+        return {"caption": caption[:280]}
 
 
 app.include_router(api_router)

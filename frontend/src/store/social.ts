@@ -73,4 +73,14 @@ export const social = {
     call<{ following: boolean }>(
       `/api/social/follows/check?followerId=${encodeURIComponent(followerId)}&followedId=${encodeURIComponent(followedId)}`
     ),
+  createCollage: (images: string[]) =>
+    call<{ image: string }>("/api/social/collage", {
+      method: "POST",
+      body: JSON.stringify({ images }),
+    }),
+  generateCaption: (recipe: { title: string; category: string; ingredients: string[] }) =>
+    call<{ caption: string }>("/api/social/generate-caption", {
+      method: "POST",
+      body: JSON.stringify(recipe),
+    }),
 };

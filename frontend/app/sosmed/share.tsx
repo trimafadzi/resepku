@@ -1,5 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
@@ -32,9 +33,63 @@ export default function Share() {
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [isGeneratingCaption, setIsGeneratingCaption] = useState(false);
+  const [isCollaging, setIsCollaging] = useState(false);
+
   useEffect(() => {
     readProfile().then(setProfile);
   }, []);
+
+  const takePhoto = async () => {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) {
+      setError("Izin kamera dibutuhkan untuk mengambil foto.");
+      return;
+    }
+    if (photos.length >= 4) {
+      setError("Maksimal 4 foto makanan.");
+      return;
+    }
+    const res = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+      base64: true,
+    });
+    if (res.canceled || !res.assets?.[0]) return;
+    const asset = res.assets[0];
+    const b64 = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+    setPhotos([...photos, b64]);
+  };
+
+  const pickPhoto = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      setError("Izin galeri foto dibutuhkan untuk memilih gambar.");
+      return;
+    }
+    if (photos.length >= 4) {
+      setError("Maksimal 4 foto makanan.");
+      return;
+    }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+      base64: true,
+    });
+    if (res.canceled || !res.assets?.[0]) return;
+    const asset = res.assets[0];
+    const b64 = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+    setPhotos([...photos, b64]);
+  };
+
+  const removePhoto = (idx: number) => {
+    setPhotos(photos.filter((_, i) => i !== idx));
+  };
 
   const publicRecipes = useMemo(() => recipes.filter((r) => r.isPublic), [recipes]);
 
@@ -42,6 +97,27 @@ export default function Share() {
     () => publicRecipes.find((r) => r.id === selectedId) ?? null,
     [publicRecipes, selectedId]
   );
+
+  const handleGenerateCaption = async () => {
+    if (!selected) {
+      setError("Pilih resep terlebih dahulu.");
+      return;
+    }
+    setIsGeneratingCaption(true);
+    setError(null);
+    try {
+      const res = await social.generateCaption({
+        title: selected.title,
+        category: selected.category,
+        ingredients: selected.ingredients,
+      });
+      setCaption(res.caption);
+    } catch (e: any) {
+      setError(e?.message || "Gagal membuat caption.");
+    } finally {
+      setIsGeneratingCaption(false);
+    }
+  };
 
   const onShare = async () => {
     if (!profile) {
@@ -55,12 +131,22 @@ export default function Share() {
     setPosting(true);
     setError(null);
     try {
+      let finalImage = selected.image;
+      if (photos.length > 1) {
+        setIsCollaging(true);
+        const collageRes = await social.createCollage(photos);
+        finalImage = collageRes.image;
+        setIsCollaging(false);
+      } else if (photos.length === 1) {
+        finalImage = photos[0];
+      }
+
       await social.createPost({
         userId: profile.id,
         caption: caption.trim(),
         recipe: {
           title: selected.title,
-          image: selected.image,
+          image: finalImage,
           category: selected.category,
           cookTime: selected.cookTime,
           servings: selected.servings,
@@ -73,6 +159,7 @@ export default function Share() {
       setError(e?.message || "Gagal membagikan resep.");
     } finally {
       setPosting(false);
+      setIsCollaging(false);
     }
   };
 
@@ -99,7 +186,31 @@ export default function Share() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Caption */}
-        <Text style={styles.fieldLabel}>Caption (opsional)</Text>
+        <View style={styles.captionHeader}>
+          <Text style={styles.fieldLabel}>Caption (opsional)</Text>
+          {selected ? (
+            <Pressable
+              testID="ai-caption-btn"
+              onPress={handleGenerateCaption}
+              disabled={isGeneratingCaption}
+              style={({ pressed }) => [
+                styles.aiBtn,
+                pressed && { opacity: 0.8 },
+                isGeneratingCaption && { opacity: 0.6 }
+              ]}
+            >
+              {isGeneratingCaption ? (
+                <ActivityIndicator size="small" color={colors.brand} />
+              ) : (
+                <>
+                  <Feather name="cpu" size={12} color={colors.brand} />
+                  <Text style={styles.aiBtnText}>AI Caption ✨</Text>
+                </>
+              )}
+            </Pressable>
+          ) : null}
+        </View>
+
         <TextInput
           testID="caption-input"
           value={caption}
@@ -111,6 +222,60 @@ export default function Share() {
           style={[styles.input, { minHeight: 80, textAlignVertical: "top" }]}
         />
         <Text style={styles.counter}>{caption.length}/280</Text>
+
+        {/* Foto Makanan */}
+        {selected ? (
+          <View style={{ marginTop: spacing.xl }}>
+            <Text style={styles.fieldLabel}>Foto Makanan</Text>
+            
+            <View style={styles.photoActions}>
+              <Pressable
+                testID="take-photo-btn"
+                onPress={takePhoto}
+                style={({ pressed }) => [styles.photoActionBtn, pressed && { opacity: 0.8 }]}
+              >
+                <Feather name="camera" size={16} color={colors.brand} />
+                <Text style={styles.photoActionBtnText}>Kamera</Text>
+              </Pressable>
+
+              <Pressable
+                testID="pick-photo-btn"
+                onPress={pickPhoto}
+                style={({ pressed }) => [styles.photoActionBtn, pressed && { opacity: 0.8 }]}
+              >
+                <Feather name="image" size={16} color={colors.brand} />
+                <Text style={styles.photoActionBtnText}>Galeri</Text>
+              </Pressable>
+            </View>
+
+            {photos.length > 0 ? (
+              <View style={styles.photosGrid}>
+                {photos.map((uri, idx) => (
+                  <View key={idx} style={styles.photoThumbWrap} testID={`photo-thumb-${idx}`}>
+                    <Image source={{ uri }} style={styles.photoThumb} />
+                    <Pressable
+                      testID={`photo-remove-${idx}`}
+                      onPress={() => removePhoto(idx)}
+                      style={styles.photoRemove}
+                      hitSlop={5}
+                    >
+                      <Feather name="x" size={12} color={colors.onSurfaceInverse} />
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+
+            {photos.length > 1 ? (
+              <View style={styles.collageBanner} testID="collage-banner">
+                <Feather name="grid" size={14} color={colors.success} />
+                <Text style={styles.collageBannerText}>
+                  {photos.length} foto terpilih. Akan digabungkan menjadi kolase otomatis saat diposting.
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
 
         {/* Recipe picker */}
         <Text style={[styles.fieldLabel, { marginTop: spacing.xl }]}>Pilih resep (publik saja)</Text>
@@ -175,8 +340,14 @@ export default function Share() {
           disabled={posting || !selected}
           style={[styles.publishBtn, (posting || !selected) && { opacity: 0.5 }]}
         >
-          <Feather name="send" size={16} color={colors.onBrandPrimary} />
-          <Text style={styles.publishBtnText}>{posting ? "Memposting..." : "Posting ke Sosmed"}</Text>
+          {posting || isCollaging ? (
+            <ActivityIndicator size="small" color={colors.onBrandPrimary} />
+          ) : (
+            <Feather name="send" size={16} color={colors.onBrandPrimary} />
+          )}
+          <Text style={styles.publishBtnText}>
+            {isCollaging ? "Membuat kolase..." : posting ? "Memposting..." : "Posting ke Sosmed"}
+          </Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -282,4 +453,94 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   publishBtnText: { fontFamily: fonts.text, color: colors.onBrandPrimary, fontSize: 15, fontWeight: "500" },
+  captionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.xs,
+  },
+  aiBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  aiBtnText: {
+    fontFamily: fonts.text,
+    fontSize: 12,
+    color: colors.brand,
+    fontWeight: "500",
+  },
+  photoActions: {
+    flexDirection: "row",
+    gap: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  photoActionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    height: 40,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.surfaceSecondary,
+  },
+  photoActionBtnText: {
+    fontFamily: fonts.text,
+    color: colors.onSurface,
+    fontSize: 13,
+  },
+  photosGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  photoThumbWrap: {
+    position: "relative",
+    width: "22.5%",
+    aspectRatio: 1,
+    borderRadius: radius.sm,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  photoThumb: {
+    width: "100%",
+    height: "100%",
+  },
+  photoRemove: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    width: 18,
+    height: 18,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  collageBanner: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    padding: spacing.md,
+    backgroundColor: "#EFF4EC",
+    borderRadius: radius.md,
+    marginTop: spacing.md,
+    alignItems: "center",
+  },
+  collageBannerText: {
+    flex: 1,
+    fontFamily: fonts.text,
+    fontSize: 12,
+    color: colors.success,
+  },
 });

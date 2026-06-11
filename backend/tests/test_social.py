@@ -225,3 +225,34 @@ class TestFollowsFeedDiscover:
             "followerId": a["id"], "followedId": "TEST_nope_xyz",
         })
         assert r.status_code == 404
+
+
+class TestNewFeatures:
+    def test_create_collage_single_image(self, base_url, api_client):
+        img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        r = api_client.post(f"{base_url}/api/social/collage", json={"images": [img]})
+        assert r.status_code == 200
+        data = r.json()
+        assert "image" in data
+        assert data["image"].startswith("data:image/jpeg;base64,")
+
+    def test_create_collage_multiple_images(self, base_url, api_client):
+        img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        r = api_client.post(f"{base_url}/api/social/collage", json={"images": [img, img]})
+        assert r.status_code == 200
+        data = r.json()
+        assert "image" in data
+        assert data["image"].startswith("data:image/jpeg;base64,")
+
+    def test_generate_caption_fallback(self, base_url, api_client):
+        payload = {
+            "title": "Nasi Goreng",
+            "category": "Sarapan",
+            "ingredients": ["Nasi", "Bawang Putih", "Telur"]
+        }
+        r = api_client.post(f"{base_url}/api/social/generate-caption", json=payload)
+        assert r.status_code == 200
+        data = r.json()
+        assert "caption" in data
+        assert "Nasi Goreng" in data["caption"]
+        assert len(data["caption"]) <= 280

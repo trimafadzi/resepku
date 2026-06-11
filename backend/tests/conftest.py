@@ -110,11 +110,17 @@ def base_url():
 
 
 def _read_frontend_env():
-    try:
-        with open("/app/frontend/.env") as f:
-            for line in f:
-                if line.startswith("EXPO_PUBLIC_BACKEND_URL="):
-                    return line.split("=", 1)[1].strip().strip('"')
-    except FileNotFoundError:
-        return None
+    from pathlib import Path
+    paths = [
+        "/app/frontend/.env",
+        str(Path(__file__).parent.parent.parent / "frontend" / ".env")
+    ]
+    for p in paths:
+        try:
+            with open(p) as f:
+                for line in f:
+                    if line.startswith("EXPO_PUBLIC_BACKEND_URL="):
+                        return line.split("=", 1)[1].strip().strip('"')
+        except FileNotFoundError:
+            continue
     return None
