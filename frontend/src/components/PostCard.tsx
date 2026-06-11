@@ -31,7 +31,7 @@ export default function PostCard({ post, onPressUser, onDelete }: Props) {
         <Pressable
           style={styles.userRow}
           onPress={() => onPressUser?.(post.userId)}
-          testID={`post-user-${post.id}`}
+          testID={`post-user-${post.userId}`}
         >
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{post.user.avatar}</Text>
