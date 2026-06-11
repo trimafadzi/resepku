@@ -620,14 +620,43 @@ async def get_drug_info(payload: DrugInfoRequest):
     api_key = (payload.apiKey or os.environ.get("GEMINI_API_KEY", "")).strip()
     model_name = (payload.aiModel or "gemini-2.5-flash").strip()
 
-    # Cek di database tiruan lokal dulu sebagai fallback
-    if name_clean in MOCK_DRUG_DATABASE:
-        data = MOCK_DRUG_DATABASE[name_clean]
+    # Cek di dataset farmasi Indonesia lokal
+    dataset_path = ROOT_DIR / "data" / "indonesian_drugs.json"
+    match_data = None
+    if dataset_path.exists():
+        try:
+            with open(dataset_path, "r", encoding="utf-8") as f:
+                local_drugs = json.load(f)
+                # Cari kecocokan persis (case-insensitive)
+                for drug in local_drugs:
+                    if drug["name"].lower() == name_clean:
+                        match_data = drug
+                        break
+                
+                # Jika tidak ada kecocokan persis, gunakan fuzzy matching terdekat (difflib)
+                if not match_data:
+                    import difflib
+                    drug_names = [d["name"] for d in local_drugs]
+                    close_matches = difflib.get_close_matches(payload.name.strip(), drug_names, n=1, cutoff=0.55)
+                    if close_matches:
+                        matched_name = close_matches[0]
+                        for drug in local_drugs:
+                            if drug["name"] == matched_name:
+                                match_data = drug
+                                break
+        except Exception:
+            pass
+
+    # Fallback ke MOCK_DRUG_DATABASE jika pencarian file gagal
+    if not match_data and name_clean in MOCK_DRUG_DATABASE:
+        match_data = MOCK_DRUG_DATABASE[name_clean]
+
+    if match_data:
         return DrugInfoResponse(
-            komposisi=data["komposisi"],
-            kegunaan=data["kegunaan"],
-            cara_pakai=data["cara_pakai"],
-            indikasi=data["indikasi"]
+            komposisi=match_data["komposisi"],
+            kegunaan=match_data["kegunaan"],
+            cara_pakai=match_data["cara_pakai"],
+            indikasi=match_data["indikasi"]
         )
 
     if not api_key:
