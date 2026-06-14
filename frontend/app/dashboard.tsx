@@ -31,6 +31,42 @@ interface SystemStats {
   uptime_seconds: number;
 }
 
+interface ServerInfo {
+  id: string;
+  name: string;
+  url: string;
+  isMock: boolean;
+  mockStats?: SystemStats;
+}
+
+const SERVERS: ServerInfo[] = [
+  {
+    id: "vps_1",
+    name: "VPS Utama",
+    url: "", // set dynamically from store
+    isMock: false,
+  },
+  {
+    id: "vps_2",
+    name: "VPS Cadangan",
+    url: "http://103.59.161.82:8000",
+    isMock: true,
+    mockStats: {
+      status: "online",
+      cpu_usage: 24,
+      ram_usage: 45,
+      ram_used_mb: 3686.4,
+      ram_total_mb: 8192.0,
+      disk_usage: 52,
+      disk_used_gb: 62.4,
+      disk_total_gb: 120.0,
+      mongo_status: "connected",
+      mongo_latency_ms: 2.45,
+      uptime_seconds: 864300, // ~10 days
+    },
+  },
+];
+
 function formatUptime(seconds: number): string {
   if (seconds < 60) return `${Math.round(seconds)} detik`;
   const minutes = Math.floor(seconds / 60);
@@ -47,6 +83,7 @@ export default function Dashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedServerId, setSelectedServerId] = useState("vps_1");
   const [serverUrl, setServerUrl] = useState("");
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,6 +127,11 @@ export default function Dashboard() {
     }, [fetchStats])
   );
 
+  const selectedServer = SERVERS.find((s) => s.id === selectedServerId) || SERVERS[0];
+  const currentOnline = selectedServer.isMock ? true : isOnline;
+  const currentStats = selectedServer.isMock ? selectedServer.mockStats! : stats;
+  const currentUrl = selectedServer.isMock ? selectedServer.url : serverUrl;
+
   return (
     <View style={styles.root}>
       <StatusBar style="dark" />
@@ -131,42 +173,93 @@ export default function Dashboard() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Connection status card */}
+        {/* Server Selector Grid */}
+        <Text style={styles.sectionTitle}>Daftar Server VPS</Text>
+        <View style={styles.serversRow}>
+          {SERVERS.map((srv) => {
+            const isSelected = selectedServerId === srv.id;
+            const srvOnline = srv.isMock ? true : isOnline;
+            const srvCpu = srv.isMock ? srv.mockStats?.cpu_usage : stats?.cpu_usage;
+            const srvRam = srv.isMock ? srv.mockStats?.ram_usage : stats?.ram_usage;
+            const srvIp = srv.isMock
+              ? srv.url.replace(/^https?:\/\//, "")
+              : serverUrl
+              ? serverUrl.replace(/^https?:\/\//, "")
+              : "103.59.161.81:8000";
+
+            return (
+              <Pressable
+                key={srv.id}
+                onPress={() => setSelectedServerId(srv.id)}
+                style={[
+                  styles.serverSelectorCard,
+                  isSelected && styles.serverSelectorCardActive,
+                ]}
+              >
+                <View style={styles.selectorHeader}>
+                  <Text style={[styles.selectorName, isSelected && styles.selectorNameActive]}>
+                    {srv.name}
+                  </Text>
+                  <View
+                    style={[
+                      styles.statusDot,
+                      srvOnline ? styles.dotOnline : styles.dotOffline,
+                    ]}
+                  />
+                </View>
+                <Text style={styles.selectorIp} numberOfLines={1}>
+                  {srvIp}
+                </Text>
+                {srvOnline && srvCpu !== undefined && srvRam !== undefined ? (
+                  <View style={styles.selectorMiniStats}>
+                    <Text style={styles.miniStatText}>CPU: {srvCpu}%</Text>
+                    <View style={styles.miniDivider} />
+                    <Text style={styles.miniStatText}>RAM: {srvRam}%</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.miniStatTextOffline}>Tidak terhubung</Text>
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* Selected Server status card */}
         <View style={[styles.card, styles.statusCard]}>
           <View style={styles.statusHeader}>
             <View style={styles.statusLabelContainer}>
-              <View style={[styles.statusDot, isOnline ? styles.dotOnline : styles.dotOffline]} />
+              <View style={[styles.statusDot, currentOnline ? styles.dotOnline : styles.dotOffline]} />
               <Text style={styles.statusLabel}>
-                {isOnline ? "SERVER ONLINE" : "SERVER OFFLINE"}
+                {selectedServer.name.toUpperCase()} - {currentOnline ? "ONLINE" : "OFFLINE"}
               </Text>
             </View>
             <Feather
-              name={isOnline ? "activity" : "alert-triangle"}
+              name={currentOnline ? "activity" : "alert-triangle"}
               size={20}
-              color={isOnline ? colors.success : colors.error}
+              color={currentOnline ? colors.success : colors.error}
             />
           </View>
           <Text style={styles.serverIpText} numberOfLines={1}>
-            {serverUrl || "Belum Dikonfigurasi"}
+            {currentUrl || "Belum Dikonfigurasi"}
           </Text>
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
               <Text style={styles.metaLabel}>Waktu Aktif</Text>
               <Text style={styles.metaValue}>
-                {isOnline && stats ? formatUptime(stats.uptime_seconds) : "-"}
+                {currentOnline && currentStats ? formatUptime(currentStats.uptime_seconds) : "-"}
               </Text>
             </View>
             <View style={styles.metaDivider} />
             <View style={styles.metaItem}>
               <Text style={styles.metaLabel}>Latensi API</Text>
               <Text style={styles.metaValue}>
-                {isOnline && stats ? `${Math.round(stats.uptime_seconds % 2 === 0 ? 32 : 28)} ms` : "-"}
+                {currentOnline && currentStats ? `${Math.round(currentStats.uptime_seconds % 2 === 0 ? 32 : 28)} ms` : "-"}
               </Text>
             </View>
           </View>
         </View>
 
-        {isOnline && stats ? (
+        {currentOnline && currentStats ? (
           <>
             {/* System Resources Section */}
             <Text style={styles.sectionTitle}>Sumber Daya Sistem</Text>
@@ -180,15 +273,15 @@ export default function Dashboard() {
                   </View>
                   <Text style={styles.resourceTitle}>Beban CPU</Text>
                 </View>
-                <Text style={styles.resourceValue}>{stats.cpu_usage}%</Text>
+                <Text style={styles.resourceValue}>{currentStats.cpu_usage}%</Text>
               </View>
               <View style={styles.progressBarBg}>
                 <View
                   style={[
                     styles.progressBarFill,
                     {
-                      width: `${stats.cpu_usage}%`,
-                      backgroundColor: stats.cpu_usage > 80 ? colors.error : "#4A90E2",
+                      width: `${currentStats.cpu_usage}%`,
+                      backgroundColor: currentStats.cpu_usage > 80 ? colors.error : "#4A90E2",
                     },
                   ]}
                 />
@@ -207,25 +300,25 @@ export default function Dashboard() {
                   </View>
                   <Text style={styles.resourceTitle}>Penggunaan Memori (RAM)</Text>
                 </View>
-                <Text style={styles.resourceValue}>{stats.ram_usage}%</Text>
+                <Text style={styles.resourceValue}>{currentStats.ram_usage}%</Text>
               </View>
               <View style={styles.progressBarBg}>
                 <View
                   style={[
                     styles.progressBarFill,
                     {
-                      width: `${stats.ram_usage}%`,
-                      backgroundColor: stats.ram_usage > 90 ? colors.error : "#6A825C",
+                      width: `${currentStats.ram_usage}%`,
+                      backgroundColor: currentStats.ram_usage > 90 ? colors.error : "#6A825C",
                     },
                   ]}
                 />
               </View>
               <View style={styles.resourceMeta}>
                 <Text style={styles.resourceMetaText}>
-                  Terpakai: {(stats.ram_used_mb / 1024).toFixed(2)} GB
+                  Terpakai: {(currentStats.ram_used_mb / 1024).toFixed(2)} GB
                 </Text>
                 <Text style={styles.resourceMetaText}>
-                  Total: {(stats.ram_total_mb / 1024).toFixed(1)} GB
+                  Total: {(currentStats.ram_total_mb / 1024).toFixed(1)} GB
                 </Text>
               </View>
             </View>
@@ -239,25 +332,25 @@ export default function Dashboard() {
                   </View>
                   <Text style={styles.resourceTitle}>Penyimpanan (Disk)</Text>
                 </View>
-                <Text style={styles.resourceValue}>{stats.disk_usage}%</Text>
+                <Text style={styles.resourceValue}>{currentStats.disk_usage}%</Text>
               </View>
               <View style={styles.progressBarBg}>
                 <View
                   style={[
                     styles.progressBarFill,
                     {
-                      width: `${stats.disk_usage}%`,
-                      backgroundColor: stats.disk_usage > 90 ? colors.error : "#D49A44",
+                      width: `${currentStats.disk_usage}%`,
+                      backgroundColor: currentStats.disk_usage > 90 ? colors.error : "#D49A44",
                     },
                   ]}
                 />
               </View>
               <View style={styles.resourceMeta}>
                 <Text style={styles.resourceMetaText}>
-                  Terpakai: {stats.disk_used_gb.toFixed(1)} GB
+                  Terpakai: {currentStats.disk_used_gb.toFixed(1)} GB
                 </Text>
                 <Text style={styles.resourceMetaText}>
-                  Total: {stats.disk_total_gb.toFixed(1)} GB
+                  Total: {currentStats.disk_total_gb.toFixed(1)} GB
                 </Text>
               </View>
             </View>
@@ -272,13 +365,13 @@ export default function Dashboard() {
                     <View
                       style={[
                         styles.dbStatusDot,
-                        stats.mongo_status === "connected"
+                        currentStats.mongo_status === "connected"
                           ? { backgroundColor: colors.success }
                           : { backgroundColor: colors.error },
                       ]}
                     />
                     <Text style={styles.dbStatusText}>
-                      {stats.mongo_status === "connected" ? "Terhubung" : "Terputus"}
+                      {currentStats.mongo_status === "connected" ? "Terhubung" : "Terputus"}
                     </Text>
                   </View>
                 </View>
@@ -286,8 +379,8 @@ export default function Dashboard() {
                 <View style={styles.dbLatencyCol}>
                   <Text style={styles.dbTitle}>Latensi MongoDB</Text>
                   <Text style={styles.dbLatencyText}>
-                    {stats.mongo_status === "connected"
-                      ? `${stats.mongo_latency_ms.toFixed(1)} ms`
+                    {currentStats.mongo_status === "connected"
+                      ? `${currentStats.mongo_latency_ms.toFixed(1)} ms`
                       : "-"}
                   </Text>
                 </View>
@@ -367,6 +460,65 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
+  },
+  serversRow: {
+    flexDirection: "row",
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  serverSelectorCard: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
+  serverSelectorCardActive: {
+    borderColor: colors.brand,
+    backgroundColor: colors.surfaceSecondary,
+  },
+  selectorHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  selectorName: {
+    fontFamily: fonts.text,
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.onSurfaceSecondary,
+  },
+  selectorNameActive: {
+    color: colors.brand,
+  },
+  selectorIp: {
+    fontFamily: Platform.select({ ios: "Courier", android: "monospace", default: "monospace" }),
+    fontSize: 11,
+    color: colors.onSurfaceTertiary,
+    marginBottom: 8,
+  },
+  selectorMiniStats: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  miniStatText: {
+    fontFamily: fonts.text,
+    fontSize: 10,
+    color: colors.onSurfaceSecondary,
+  },
+  miniDivider: {
+    width: 1,
+    height: 10,
+    backgroundColor: colors.borderStrong,
+    marginHorizontal: 6,
+  },
+  miniStatTextOffline: {
+    fontFamily: fonts.text,
+    fontSize: 10,
+    color: colors.error,
+    fontWeight: "500",
   },
   card: {
     backgroundColor: colors.surface,
