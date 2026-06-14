@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   View,
+  Switch,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -34,6 +35,12 @@ export default function SettingsScreen() {
   const [apiKey, setApiKey] = useState("");
   const [selectedModel, setSelectedModel] = useState("gemini-2.5-flash");
   const [showKey, setShowKey] = useState(false);
+  const [sidebarPrefs, setSidebarPrefs] = useState({
+    dashboard: true,
+    resep: true,
+    sosmed: true,
+    obatku: true,
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -45,9 +52,11 @@ export default function SettingsScreen() {
         const url = await settingsStore.getBaseUrl();
         const key = await settingsStore.getApiKey();
         const model = await settingsStore.getAiModel();
+        const prefs = await settingsStore.getSidebarPrefs();
         setBaseUrl(url);
         setApiKey(key);
         setSelectedModel(model);
+        setSidebarPrefs(prefs);
       } catch (e) {
         console.warn("Gagal memuat pengaturan:", e);
       } finally {
@@ -66,6 +75,7 @@ export default function SettingsScreen() {
       await settingsStore.setBaseUrl(baseUrl);
       await settingsStore.setApiKey(apiKey);
       await settingsStore.setAiModel(selectedModel);
+      await settingsStore.setSidebarPrefs(sidebarPrefs);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (e) {
@@ -199,6 +209,92 @@ export default function SettingsScreen() {
               </Pressable>
             );
           })}
+        </View>
+
+        {/* Profile Menu Sidebar */}
+        <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>Profie Menu Sidebar</Text>
+        <Text style={styles.sectionSubtitle}>
+          Pilih menu apa saja yang ingin Anda aktifkan di bilah menu samping (sidebar).
+        </Text>
+
+        <View style={styles.card}>
+          {/* Dashboard */}
+          <View style={styles.prefRow}>
+            <View style={styles.prefTextWrap}>
+              <Text style={styles.prefLabel}>Dashboard</Text>
+              <Text style={styles.prefDesc}>Ringkasan aktivitas dapur, obat, dan resep terbaru.</Text>
+            </View>
+            <Switch
+              testID="settings-pref-dashboard"
+              value={sidebarPrefs.dashboard}
+              onValueChange={(val) => setSidebarPrefs(prev => ({ ...prev, dashboard: val }))}
+              trackColor={{ false: colors.borderStrong, true: colors.brand }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+          <View style={styles.prefDivider} />
+
+          {/* Resep */}
+          <View style={styles.prefRow}>
+            <View style={styles.prefTextWrap}>
+              <Text style={styles.prefLabel}>Resep</Text>
+              <Text style={styles.prefDesc}>Halaman utama katalog resep lokal Anda.</Text>
+            </View>
+            <Switch
+              testID="settings-pref-resep"
+              value={sidebarPrefs.resep}
+              onValueChange={(val) => setSidebarPrefs(prev => ({ ...prev, resep: val }))}
+              trackColor={{ false: colors.borderStrong, true: colors.brand }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+          <View style={styles.prefDivider} />
+
+          {/* Sosmed */}
+          <View style={styles.prefRow}>
+            <View style={styles.prefTextWrap}>
+              <Text style={styles.prefLabel}>Sosmed</Text>
+              <Text style={styles.prefDesc}>Berbagi resep publik, feed sosial, dan profil dapur.</Text>
+            </View>
+            <Switch
+              testID="settings-pref-sosmed"
+              value={sidebarPrefs.sosmed}
+              onValueChange={(val) => setSidebarPrefs(prev => ({ ...prev, sosmed: val }))}
+              trackColor={{ false: colors.borderStrong, true: colors.brand }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+          <View style={styles.prefDivider} />
+
+          {/* Obatku */}
+          <View style={styles.prefRow}>
+            <View style={styles.prefTextWrap}>
+              <Text style={styles.prefLabel}>Obatku</Text>
+              <Text style={styles.prefDesc}>Kotak obat pribadi dan informasi obat otomatis.</Text>
+            </View>
+            <Switch
+              testID="settings-pref-obatku"
+              value={sidebarPrefs.obatku}
+              onValueChange={(val) => setSidebarPrefs(prev => ({ ...prev, obatku: val }))}
+              trackColor={{ false: colors.borderStrong, true: colors.brand }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+          <View style={styles.prefDivider} />
+
+          {/* Pengaturan (Locked) */}
+          <View style={styles.prefRow}>
+            <View style={styles.prefTextWrap}>
+              <Text style={styles.prefLabel}>Pengaturan</Text>
+              <Text style={styles.prefDesc}>Konfigurasi sistem (selalu aktif & wajib ada).</Text>
+            </View>
+            <Switch
+              value={true}
+              disabled={true}
+              trackColor={{ false: colors.borderStrong, true: colors.brand }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
         </View>
 
         {/* Feedback Sukses */}
@@ -449,5 +545,32 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     color: colors.onBrandPrimary,
+  },
+  prefRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: spacing.md,
+  },
+  prefTextWrap: {
+    flex: 1,
+    paddingRight: spacing.md,
+  },
+  prefLabel: {
+    fontFamily: fonts.text,
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.onSurface,
+    marginBottom: 2,
+  },
+  prefDesc: {
+    fontFamily: fonts.text,
+    fontSize: 11,
+    color: colors.onSurfaceTertiary,
+    lineHeight: 15,
+  },
+  prefDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.divider,
   },
 });

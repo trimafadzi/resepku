@@ -11,6 +11,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, fonts, radius, spacing } from "@/src/theme";
+import { settingsStore } from "@/src/store/settings";
 
 const { width: SCREEN_W } = Dimensions.get("window");
 const DRAWER_W = Math.min(SCREEN_W * 0.78, 320);
@@ -38,6 +39,18 @@ export default function AppDrawer({ open, onClose, active }: Props) {
   // Keep the tree mounted long enough for the close animation to play out
   // before unmounting. Otherwise the drawer disappears instantly on close.
   const [mounted, setMounted] = useState(open);
+  const [prefs, setPrefs] = useState<Record<string, boolean>>({
+    dashboard: true,
+    resep: true,
+    sosmed: true,
+    obatku: true,
+  });
+
+  useEffect(() => {
+    if (open) {
+      settingsStore.getSidebarPrefs().then(setPrefs);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (open) setMounted(true);
@@ -107,7 +120,10 @@ export default function AppDrawer({ open, onClose, active }: Props) {
         </View>
 
         <View style={styles.itemsWrap}>
-          {ITEMS.map((it) => {
+          {ITEMS.filter((it) => {
+            if (it.key === "settings") return true;
+            return prefs[it.key] !== false;
+          }).map((it) => {
             const isActive = it.key === active;
             return (
               <Pressable
