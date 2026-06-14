@@ -79,6 +79,99 @@ function formatUptime(seconds: number): string {
   return `${days} hari ${remHours} jam ${remMinutes} menit`;
 }
 
+function PieChart({
+  percentage,
+  color,
+  bgColor,
+  size = 82,
+}: {
+  percentage: number;
+  color: string;
+  bgColor: string;
+  size?: number;
+}) {
+  const isWeb = Platform.OS === "web";
+  const radiusVal = size / 2;
+
+  // Web: Conic-gradient for crisp and perfect circular pie charts
+  const webStyle = isWeb
+    ? {
+        backgroundImage: `conic-gradient(${color} 0% ${percentage}%, ${bgColor} ${percentage}% 100%)`,
+      }
+    : {};
+
+  // Native: Border-based segmented approximation
+  // Set borderWidth to radiusVal so the border fills the circle completely
+  const nativeStyle = !isWeb
+    ? {
+        borderWidth: radiusVal,
+        borderColor: bgColor,
+        borderTopColor: color,
+        borderRightColor: percentage >= 25 ? color : bgColor,
+        borderBottomColor: percentage >= 50 ? color : bgColor,
+        borderLeftColor: percentage >= 75 ? color : bgColor,
+      }
+    : {};
+
+  return (
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+      {isWeb ? (
+        <View
+          style={[
+            {
+              width: size,
+              height: size,
+              borderRadius: radiusVal,
+            },
+            webStyle,
+          ]}
+        />
+      ) : (
+        <View
+          style={[
+            {
+              width: size,
+              height: size,
+              borderRadius: radiusVal,
+              transform: [{ rotate: "45deg" }],
+            },
+            nativeStyle,
+          ]}
+        />
+      )}
+
+      {/* Floating glassmorphism badge overlaying the center of the pie chart */}
+      <View
+        style={{
+          position: "absolute",
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          paddingHorizontal: 6,
+          paddingVertical: 2,
+          borderRadius: radius.sm,
+          borderWidth: 1,
+          borderColor: colors.border,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.12,
+          shadowRadius: 2,
+          elevation: 2,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: fonts.text,
+            fontSize: 10,
+            fontWeight: "700",
+            color: colors.onSurface,
+          }}
+        >
+          {percentage}%
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -261,96 +354,50 @@ export default function Dashboard() {
 
         {currentOnline && currentStats ? (
           <>
-            {/* System Resources Section */}
+            {/* System Resources Section with Pie Charts */}
             <Text style={styles.sectionTitle}>Sumber Daya Sistem</Text>
-            
-            {/* CPU usage card */}
-            <View style={styles.card}>
-              <View style={styles.resourceHeader}>
-                <View style={styles.resourceTitleRow}>
-                  <View style={[styles.iconBox, { backgroundColor: "#EDF5F6" }]}>
-                    <Feather name="cpu" size={18} color="#4A90E2" />
+            <View style={[styles.card, styles.resourcesRow]}>
+              {/* CPU Gauge */}
+              <View style={styles.gaugeCol}>
+                <PieChart percentage={currentStats.cpu_usage} color="#4A90E2" bgColor="#D2E4F9" size={82} />
+                <View style={styles.gaugeLabelRow}>
+                  <View style={[styles.miniIconBox, { backgroundColor: "#EDF5F6" }]}>
+                    <Feather name="cpu" size={10} color="#4A90E2" />
                   </View>
-                  <Text style={styles.resourceTitle}>Beban CPU</Text>
+                  <Text style={styles.gaugeTitle}>CPU</Text>
                 </View>
-                <Text style={styles.resourceValue}>{currentStats.cpu_usage}%</Text>
+                <Text style={styles.gaugeHelp}>Beban Kerja</Text>
               </View>
-              <View style={styles.progressBarBg}>
-                <View
-                  style={[
-                    styles.progressBarFill,
-                    {
-                      width: `${currentStats.cpu_usage}%`,
-                      backgroundColor: currentStats.cpu_usage > 80 ? colors.error : "#4A90E2",
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={styles.resourceHelp}>
-                Persentase utilitas prosesor server saat ini.
-              </Text>
-            </View>
 
-            {/* RAM usage card */}
-            <View style={styles.card}>
-              <View style={styles.resourceHeader}>
-                <View style={styles.resourceTitleRow}>
-                  <View style={[styles.iconBox, { backgroundColor: "#EBF3E8" }]}>
-                    <Feather name="hard-drive" size={18} color="#6A825C" />
-                  </View>
-                  <Text style={styles.resourceTitle}>Penggunaan Memori (RAM)</Text>
-                </View>
-                <Text style={styles.resourceValue}>{currentStats.ram_usage}%</Text>
-              </View>
-              <View style={styles.progressBarBg}>
-                <View
-                  style={[
-                    styles.progressBarFill,
-                    {
-                      width: `${currentStats.ram_usage}%`,
-                      backgroundColor: currentStats.ram_usage > 90 ? colors.error : "#6A825C",
-                    },
-                  ]}
-                />
-              </View>
-              <View style={styles.resourceMeta}>
-                <Text style={styles.resourceMetaText}>
-                  Terpakai: {(currentStats.ram_used_mb / 1024).toFixed(2)} GB
-                </Text>
-                <Text style={styles.resourceMetaText}>
-                  Total: {(currentStats.ram_total_mb / 1024).toFixed(1)} GB
-                </Text>
-              </View>
-            </View>
+              <View style={styles.gaugeDivider} />
 
-            {/* Disk usage card */}
-            <View style={styles.card}>
-              <View style={styles.resourceHeader}>
-                <View style={styles.resourceTitleRow}>
-                  <View style={[styles.iconBox, { backgroundColor: "#F7F3EB" }]}>
-                    <Feather name="database" size={18} color="#D49A44" />
+              {/* RAM Gauge */}
+              <View style={styles.gaugeCol}>
+                <PieChart percentage={currentStats.ram_usage} color="#6A825C" bgColor="#D4E5D1" size={82} />
+                <View style={styles.gaugeLabelRow}>
+                  <View style={[styles.miniIconBox, { backgroundColor: "#EBF3E8" }]}>
+                    <Feather name="hard-drive" size={10} color="#6A825C" />
                   </View>
-                  <Text style={styles.resourceTitle}>Penyimpanan (Disk)</Text>
+                  <Text style={styles.gaugeTitle}>RAM</Text>
                 </View>
-                <Text style={styles.resourceValue}>{currentStats.disk_usage}%</Text>
-              </View>
-              <View style={styles.progressBarBg}>
-                <View
-                  style={[
-                    styles.progressBarFill,
-                    {
-                      width: `${currentStats.disk_usage}%`,
-                      backgroundColor: currentStats.disk_usage > 90 ? colors.error : "#D49A44",
-                    },
-                  ]}
-                />
-              </View>
-              <View style={styles.resourceMeta}>
-                <Text style={styles.resourceMetaText}>
-                  Terpakai: {currentStats.disk_used_gb.toFixed(1)} GB
+                <Text style={styles.gaugeHelp} numberOfLines={1}>
+                  {(currentStats.ram_used_mb / 1024).toFixed(1)}/{(currentStats.ram_total_mb / 1024).toFixed(0)} GB
                 </Text>
-                <Text style={styles.resourceMetaText}>
-                  Total: {currentStats.disk_total_gb.toFixed(1)} GB
+              </View>
+
+              <View style={styles.gaugeDivider} />
+
+              {/* Disk Gauge */}
+              <View style={styles.gaugeCol}>
+                <PieChart percentage={currentStats.disk_usage} color="#D49A44" bgColor="#F3E5D0" size={82} />
+                <View style={styles.gaugeLabelRow}>
+                  <View style={[styles.miniIconBox, { backgroundColor: "#F7F3EB" }]}>
+                    <Feather name="database" size={10} color="#D49A44" />
+                  </View>
+                  <Text style={styles.gaugeTitle}>Disk</Text>
+                </View>
+                <Text style={styles.gaugeHelp} numberOfLines={1}>
+                  {currentStats.disk_used_gb.toFixed(0)}/{currentStats.disk_total_gb.toFixed(0)} GB
                 </Text>
               </View>
             </View>
@@ -609,61 +656,46 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     marginBottom: spacing.md,
   },
-  resourceHeader: {
+  resourcesRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: spacing.sm,
+    justifyContent: "space-around",
+    paddingVertical: spacing.lg,
   },
-  resourceTitleRow: {
+  gaugeCol: {
+    alignItems: "center",
+    flex: 1,
+  },
+  gaugeLabelRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: 4,
+    marginTop: spacing.sm,
+    marginBottom: 2,
   },
-  iconBox: {
-    width: 32,
-    height: 32,
+  miniIconBox: {
+    width: 16,
+    height: 16,
     borderRadius: radius.sm,
     alignItems: "center",
     justifyContent: "center",
   },
-  resourceTitle: {
+  gaugeTitle: {
     fontFamily: fonts.text,
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.onSurface,
-  },
-  resourceValue: {
-    fontFamily: fonts.display,
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "700",
     color: colors.onSurface,
   },
-  progressBarBg: {
-    height: 8,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: 4,
-    overflow: "hidden",
-    marginBottom: spacing.xs,
-  },
-  progressBarFill: {
-    height: "100%",
-    borderRadius: 4,
-  },
-  resourceHelp: {
+  gaugeHelp: {
     fontFamily: fonts.text,
-    fontSize: 11,
+    fontSize: 10,
     color: colors.onSurfaceTertiary,
+    textAlign: "center",
   },
-  resourceMeta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: spacing.xs,
-  },
-  resourceMetaText: {
-    fontFamily: fonts.text,
-    fontSize: 11,
-    color: colors.onSurfaceSecondary,
+  gaugeDivider: {
+    width: 1,
+    height: 80,
+    backgroundColor: colors.divider,
+    alignSelf: "center",
   },
   dbRow: {
     flexDirection: "row",
