@@ -17,7 +17,10 @@ import uuid
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image
+import time
+import psutil
 
+START_TIME = time.time()
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -149,6 +152,66 @@ def _find_recipe_node(data):
 @api_router.get("/")
 async def root():
     return {"message": "RecipeVault API"}
+
+
+class SystemStatsResponse(BaseModel):
+    status: str
+    cpu_usage: float
+    ram_usage: float
+    ram_used_mb: float
+    ram_total_mb: float
+    disk_usage: float
+    disk_used_gb: float
+    disk_total_gb: float
+    mongo_status: str
+    mongo_latency_ms: float
+    uptime_seconds: float
+
+
+@api_router.get("/system/stats", response_model=SystemStatsResponse)
+async def get_system_stats():
+    cpu = psutil.cpu_percent(interval=None)
+    
+    vmem = psutil.virtual_memory()
+    ram_usage = vmem.percent
+    ram_used_mb = vmem.used / (1024 * 1024)
+    ram_total_mb = vmem.total / (1024 * 1024)
+    
+    try:
+        disk = psutil.disk_usage("/")
+        disk_usage = disk.percent
+        disk_used_gb = disk.used / (1024 * 1024 * 1024)
+        disk_total_gb = disk.total / (1024 * 1024 * 1024)
+    except Exception:
+        disk_usage = 0.0
+        disk_used_gb = 0.0
+        disk_total_gb = 0.0
+
+    mongo_status = "disconnected"
+    mongo_latency = 0.0
+    try:
+        t0 = time.time()
+        await db.command("ping")
+        mongo_latency = (time.time() - t0) * 1000
+        mongo_status = "connected"
+    except Exception:
+        pass
+
+    uptime = time.time() - START_TIME
+
+    return SystemStatsResponse(
+        status="online",
+        cpu_usage=cpu,
+        ram_usage=ram_usage,
+        ram_used_mb=round(ram_used_mb, 1),
+        ram_total_mb=round(ram_total_mb, 1),
+        disk_usage=disk_usage,
+        disk_used_gb=round(disk_used_gb, 1),
+        disk_total_gb=round(disk_total_gb, 1),
+        mongo_status=mongo_status,
+        mongo_latency_ms=round(mongo_latency, 2),
+        uptime_seconds=round(uptime, 1)
+    )
 
 
 @api_router.post("/recipes/import", response_model=ImportedRecipe)
