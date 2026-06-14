@@ -34,6 +34,7 @@ export default function RootLayout() {
             contentStyle: { backgroundColor: "#FDFBF7" },
           }}
         >
+          <Stack.Screen name="dashboard" options={{ animation: "fade" }} />
           <Stack.Screen name="index" />
           <Stack.Screen name="sosmed" options={{ animation: "fade" }} />
           <Stack.Screen name="settings" options={{ animation: "fade" }} />
