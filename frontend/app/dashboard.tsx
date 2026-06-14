@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -410,10 +411,11 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
   },
   serverIpText: {
-    fontFamily: fonts.display,
-    fontSize: 22,
+    fontFamily: Platform.select({ ios: "Courier", android: "monospace", default: "monospace" }),
+    fontSize: 16,
     color: colors.onSurface,
-    fontWeight: "700",
+    fontWeight: "bold",
+    letterSpacing: -0.3,
     marginBottom: spacing.md,
   },
   metaRow: {
