@@ -79,21 +79,23 @@ function formatUptime(seconds: number): string {
   return `${days} hari ${remHours} jam ${remMinutes} menit`;
 }
 
-function PieChart({
+function DonutChart({
   percentage,
   color,
   bgColor,
   size = 82,
+  strokeWidth = 8,
 }: {
   percentage: number;
   color: string;
   bgColor: string;
   size?: number;
+  strokeWidth?: number;
 }) {
   const isWeb = Platform.OS === "web";
   const radiusVal = size / 2;
 
-  // Web: Conic-gradient for crisp and perfect circular pie charts
+  // Web: Conic-gradient for crisp and perfect circular donut charts
   const webStyle = isWeb
     ? {
         backgroundImage: `conic-gradient(${color} 0% ${percentage}%, ${bgColor} ${percentage}% 100%)`,
@@ -101,11 +103,8 @@ function PieChart({
     : {};
 
   // Native: Border-based segmented approximation
-  // Set borderWidth to radiusVal so the border fills the circle completely
   const nativeStyle = !isWeb
     ? {
-        borderWidth: radiusVal,
-        borderColor: bgColor,
         borderTopColor: color,
         borderRightColor: percentage >= 25 ? color : bgColor,
         borderBottomColor: percentage >= 50 ? color : bgColor,
@@ -133,6 +132,8 @@ function PieChart({
               width: size,
               height: size,
               borderRadius: radiusVal,
+              borderWidth: strokeWidth,
+              borderColor: bgColor,
               transform: [{ rotate: "45deg" }],
             },
             nativeStyle,
@@ -140,27 +141,22 @@ function PieChart({
         />
       )}
 
-      {/* Floating glassmorphism badge overlaying the center of the pie chart */}
+      {/* Inner hole to make it a donut chart */}
       <View
         style={{
           position: "absolute",
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
-          paddingHorizontal: 6,
-          paddingVertical: 2,
-          borderRadius: radius.sm,
-          borderWidth: 1,
-          borderColor: colors.border,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.12,
-          shadowRadius: 2,
-          elevation: 2,
+          width: size - strokeWidth * 2,
+          height: size - strokeWidth * 2,
+          borderRadius: (size - strokeWidth * 2) / 2,
+          backgroundColor: colors.surface,
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         <Text
           style={{
             fontFamily: fonts.text,
-            fontSize: 10,
+            fontSize: 13,
             fontWeight: "700",
             color: colors.onSurface,
           }}
@@ -354,12 +350,12 @@ export default function Dashboard() {
 
         {currentOnline && currentStats ? (
           <>
-            {/* System Resources Section with Pie Charts */}
+            {/* System Resources Section with Donut Charts */}
             <Text style={styles.sectionTitle}>Sumber Daya Sistem</Text>
             <View style={[styles.card, styles.resourcesRow]}>
               {/* CPU Gauge */}
               <View style={styles.gaugeCol}>
-                <PieChart percentage={currentStats.cpu_usage} color="#4A90E2" bgColor="#D2E4F9" size={82} />
+                <DonutChart percentage={currentStats.cpu_usage} color="#4A90E2" bgColor="#D2E4F9" size={82} strokeWidth={8} />
                 <View style={styles.gaugeLabelRow}>
                   <View style={[styles.miniIconBox, { backgroundColor: "#EDF5F6" }]}>
                     <Feather name="cpu" size={10} color="#4A90E2" />
@@ -373,7 +369,7 @@ export default function Dashboard() {
 
               {/* RAM Gauge */}
               <View style={styles.gaugeCol}>
-                <PieChart percentage={currentStats.ram_usage} color="#6A825C" bgColor="#D4E5D1" size={82} />
+                <DonutChart percentage={currentStats.ram_usage} color="#6A825C" bgColor="#D4E5D1" size={82} strokeWidth={8} />
                 <View style={styles.gaugeLabelRow}>
                   <View style={[styles.miniIconBox, { backgroundColor: "#EBF3E8" }]}>
                     <Feather name="hard-drive" size={10} color="#6A825C" />
@@ -389,7 +385,7 @@ export default function Dashboard() {
 
               {/* Disk Gauge */}
               <View style={styles.gaugeCol}>
-                <PieChart percentage={currentStats.disk_usage} color="#D49A44" bgColor="#F3E5D0" size={82} />
+                <DonutChart percentage={currentStats.disk_usage} color="#D49A44" bgColor="#F3E5D0" size={82} strokeWidth={8} />
                 <View style={styles.gaugeLabelRow}>
                   <View style={[styles.miniIconBox, { backgroundColor: "#F7F3EB" }]}>
                     <Feather name="database" size={10} color="#D49A44" />
