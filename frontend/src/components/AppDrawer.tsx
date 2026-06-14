@@ -91,8 +91,18 @@ export default function AppDrawer({ open, onClose, active }: Props) {
         ]}
       >
         <View style={styles.brand}>
-          <Text style={styles.brandEyebrow}>Buku Resep</Text>
-          <Text style={styles.brandTitle}>Menu</Text>
+          <View style={styles.brandTextWrap}>
+            <Text style={styles.brandEyebrow}>Buku Resep</Text>
+            <Text style={styles.brandTitle}>Menu</Text>
+          </View>
+          <Pressable
+            testID="close-drawer-btn"
+            onPress={onClose}
+            hitSlop={12}
+            style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.75 }]}
+          >
+            <Feather name="chevron-left" size={24} color={colors.onSurface} />
+          </Pressable>
         </View>
 
         <View style={styles.itemsWrap}>
@@ -137,7 +147,23 @@ const styles = StyleSheet.create({
     borderRightColor: colors.border,
     paddingHorizontal: spacing.lg,
   },
-  brand: { marginBottom: spacing.xl },
+  brand: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.xl,
+  },
+  brandTextWrap: { flex: 1 },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSecondary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
   brandEyebrow: {
     fontFamily: fonts.text,
     fontSize: 11,
